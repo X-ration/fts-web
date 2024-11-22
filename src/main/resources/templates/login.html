@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;
+charset=UTF-8"/>
+    <title>登录</title>
+</head>
+<body>
+<div class="container" layout:fragment="content">
+    <br><br><br>
+    <h1 class="text-center">用户登录</h1>
+    <br><br>
+    <div class="col-8 offset-2">
+        <div class="alert alert-warning" role="alert" th:if="${error}" th:text="${error}">
+            A simple warning alert—check it out!
+        </div>
+        <form id="loginForm" action="/user/loginByFtsId" method="post">
+            <div id="ftsIdGroup" class="form-group">
+                <label for="ftsId">Fts号码</label>
+                <div class="input-group">
+                    <input id="ftsId" name="ftsId" type="text" class="form-control" required="required" placeholder="Fts号码">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">通过Fts号码登录</button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" type="button" onclick="formEmailLogin()">通过电子邮件登录</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="emailGroup" class="form-group d-none">
+                <label for="email">电子邮件</label>
+                <div class="input-group">
+                    <input id="email" name="email" type="text" class="form-control" placeholder="someone@example.com">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">通过电子邮件登录</button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" type="button" onclick="formFtsIdLogin()">通过Fts号码登录</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="密码" required="required">
+            </div>
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">记住我</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">登录</button>
+            </div>
+            <div class="form-group">
+                <a href="#">忘记密码？</a>
+                <a href="#">新用户注册</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+<script layout:fragment="script">
+    function formFtsIdLogin() {
+        $('#ftsIdGroup').removeClass('d-none');
+        $('#emailGroup').addClass('d-none');
+        $('#email').removeAttr('required');
+        $('#ftsId').attr('required','required');
+        $('#loginForm').attr('action','/user/loginByFtsId');
+    }
+    function formEmailLogin() {
+        $('#emailGroup').removeClass('d-none');
+        $('#ftsIdGroup').addClass('d-none');
+        $('#ftsId').removeAttr('required');
+        $('#email').attr('required','required');
+        $('#loginForm').attr('action','/user/loginByEmail');
+    }
+</script>
+</html>
