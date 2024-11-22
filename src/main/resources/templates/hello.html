@@ -47,6 +47,13 @@
         var lastId = children[children.length-1].getAttribute('id');
         var newId = 'toast'+(parseInt(lastId.substring(5))+1);
         newToast.attr('id', newId);
+        var childDivs = $('#toastContainer>div');
+        for(var i=1;i<childDivs.length;i++) {
+            var childDiv = childDivs[i];
+            if(childDiv.getAttribute('class').includes('hide')) {
+                childDiv.remove();
+            }
+        }
         container.append(newToast);
         newToast.toast({autohide: false});
         newToast.toast('show');
