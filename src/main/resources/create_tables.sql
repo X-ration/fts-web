@@ -22,7 +22,7 @@ CREATE TABLE `user_extend`(
     `id` BIGINT(64) NOT NULL AUTO_INCREMENT,
     `user_id` BIGINT(64) NOT NULL,
     `birth_date` DATE,
-    `hobby` VARCHAR(100),
+    `hobby` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     `autograph` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -1,6 +1,6 @@
 package com.adam.ftsweb.controller;
 
-import com.adam.ftsweb.mapper.TestMapper;
+import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.util.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,7 +16,7 @@ import java.time.LocalTime;
 public class HelloController {
 
     @Autowired
-    private TestMapper testMapper;
+    private UserMapper userMapper;
 
     @RequestMapping("hello")
     @ResponseBody
@@ -53,7 +53,7 @@ public class HelloController {
     @RequestMapping("helloMapper")
     @ResponseBody
     public Response<?> helloMapper() {
-        long maxFtsId = testMapper.queryMaxFtsId();
+        long maxFtsId = userMapper.queryMaxFtsId();
         return Response.success(maxFtsId);
     }
 

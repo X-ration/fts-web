@@ -4,6 +4,7 @@ import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.RegisterPageConstant;
 import com.adam.ftsweb.dto.RegisterForm;
 import com.adam.ftsweb.dto.RegisterFormErrorMsg;
+import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
 import com.adam.ftsweb.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,6 +27,8 @@ public class UserController {
 
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -83,7 +86,14 @@ public class UserController {
             }
             return "register";
         }
-        return "registerSuccess";
+        Response<Long> registerResponse = userService.registerUser(registerForm);
+        if(registerResponse.isSuccess()) {
+            model.addAttribute("ftsId", registerResponse.getData());
+            return "registerSuccess";
+        } else {
+            model.addAttribute("error", registerResponse.getMessage());
+            return "register";
+        }
     }
 
     private Response<RegisterFormErrorMsg> checkParamsAndGenerateErrorMsg(RegisterForm registerForm) {
