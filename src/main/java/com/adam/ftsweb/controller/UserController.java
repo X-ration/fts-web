@@ -36,8 +36,8 @@ public class UserController {
     }
 
     @PostMapping("/loginByFtsId")
-    public String loginByFtsId(@RequestParam("ftsId") String ftsIdStr, @RequestParam String password, RedirectAttributes redirectAttributes) {
-        log.debug("loginByFtsId ftsIdStr={},password={}", ftsIdStr, password);
+    public String loginByFtsId(@RequestParam("ftsId") String ftsIdStr, @RequestParam String password, @RequestParam(required = false) boolean rememberMe, RedirectAttributes redirectAttributes) {
+        log.debug("loginByFtsId ftsIdStr={},password={},rememberMe={}", ftsIdStr, password, rememberMe);
         if(StringUtils.isBlank(ftsIdStr) || StringUtils.isBlank(password)) {
             redirectAttributes.addFlashAttribute("error", "无效的请求");
             return "redirect:/user/login";
@@ -53,8 +53,8 @@ public class UserController {
     }
 
     @PostMapping("/loginByEmail")
-    public String loginByEmail(@RequestParam String email, @RequestParam String password, RedirectAttributes redirectAttributes) {
-        log.debug("loginByEmail email={},password={}", email, password);
+    public String loginByEmail(@RequestParam String email, @RequestParam String password, @RequestParam(required = false) boolean rememberMe, RedirectAttributes redirectAttributes) {
+        log.debug("loginByEmail email={},password={},rememberMe={}", email, password, rememberMe);
         if(StringUtils.isBlank(email) || StringUtils.isBlank(password)) {
             redirectAttributes.addFlashAttribute("error", "无效的请求");
             return "redirect:/user/login";
