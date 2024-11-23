@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`(
     `id` BIGINT(64) NOT NULL AUTO_INCREMENT,
     `fts_id` BIGINT(64) NOT NULL UNIQUE,
-    `email` VARCHAR(100) NOT NULL UNIQUE,
+    `email` VARCHAR(256) NOT NULL UNIQUE,
     `nickname` VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
     `password` VARCHAR(32) NOT NULL,
     `salt` VARCHAR(32) NOT NULL,

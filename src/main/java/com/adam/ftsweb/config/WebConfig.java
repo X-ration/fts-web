@@ -26,9 +26,9 @@ import java.time.format.DateTimeFormatter;
 @Configuration
 public class WebConfig {
 
-    public static final String TIME_PATTERN = "HH:mm:ss";
-    public static final String DATE_PATTERN = "yyyy-MM-dd";
-    public static final String DATETIME_PATTERN = DATE_PATTERN + " " + TIME_PATTERN;
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Jackson ObjectMapper，日期格式相关配置
@@ -39,15 +39,15 @@ public class WebConfig {
     @Bean
     public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
         ObjectMapper objectMapper = builder.createXmlMapper(false)
-                .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DATETIME_PATTERN)))
-                .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DATETIME_PATTERN)))
-                .serializerByType(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ofPattern(TIME_PATTERN)))
-                .deserializerByType(LocalTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(TIME_PATTERN)))
-                .serializerByType(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern(DATE_PATTERN)))
-                .deserializerByType(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ofPattern(DATE_PATTERN)))
+                .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DATE_TIME_FORMATTER))
+                .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(DATE_TIME_FORMATTER))
+                .serializerByType(LocalTime.class, new LocalTimeSerializer(TIME_FORMATTER))
+                .deserializerByType(LocalTime.class, new LocalDateTimeDeserializer(TIME_FORMATTER))
+                .serializerByType(LocalDate.class, new LocalDateSerializer(DATE_FORMATTER))
+                .deserializerByType(LocalDate.class, new LocalDateDeserializer(DATE_FORMATTER))
                 .build();
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        objectMapper.setDateFormat(new SimpleDateFormat(DATETIME_PATTERN));
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
         return objectMapper;
     }
 

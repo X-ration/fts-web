@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;
+charset=UTF-8"/>
+    <title>用户注册</title>
+</head>
+<body>
+<div class="container" layout:fragment="content">
+    <br><br><br>
+    <h1 class="text-center">用户注册</h1>
+    <br><br>
+    <div class="col-8 offset-2">
+        <div id="errorMsg" class="alert alert-warning" role="alert" th:if="${error}" th:text="${error}">
+            A simple warning alert—check it out!
+        </div>
+        <form id="registerForm" th:object="${registerForm}" action="/user/register" method="post">
+            <h4>基础信息</h4>
+            <div class="form-row">
+                <div class="col-6">
+                    <label for="ftsId">Fts号码</label>
+                    <input type="text" readonly class="form-control" id="ftsId" value="自动生成">
+                </div>
+                <div class="col-6">
+                    <label for="nickname">昵称</label>
+                    <input type="text" class="form-control" id="nickname" th:field="*{nickname}" placeholder="可以包含表情符号">
+                    <div class="invalid-feedback">昵称长度不能超过32个字符</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-6">
+                    <label for="email">电子邮件地址</label>
+                    <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="someone@example.com">
+                    <div class="invalid-feedback">必须是合法的电子邮件地址</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-6">
+                    <label for="password">密码</label>
+                    <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="密码长度不超过32位">
+                    <div class="invalid-feedback">密码长度不超过32位</div>
+                </div>
+                <div class="col-6">
+                    <label for="verifyPassword">确认密码</label>
+                    <input type="password" class="form-control" id="verifyPassword" th:field="*{verifyPassword}" placeholder="再输入一次密码">
+                    <div class="invalid-feedback">两次输入的密码不一致</div>
+                </div>
+            </div>
+            <br>
+            <h4>扩展信息（选填）</h4>
+            <div class="form-row">
+                <div class="col-6">
+                    <label for="birthDate">出生日期</label>
+                    <input type="text" readonly class="form-control" id="birthDate" th:field="*{birthDate}" placeholder="请选择日期">
+                    <div class="invalid-feedback">请输入正确的日期</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <label for="hobby">爱好</label>
+                    <textarea type="text" class="form-control" id="hobby" th:field="*{hobby}" placeholder="不超过100字符"></textarea>
+                    <div class="invalid-feedback">爱好不能超过100个字符</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col">
+                    <label for="autograph">个性签名</label>
+                    <textarea class="form-control" id="autograph" th:field="*{autograph}" placeholder="不超过100字符"></textarea>
+                    <div class="invalid-feedback">个性签名不能超过100个字符</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <button type="submit" class="btn btn-primary btn-block">注册</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+<script layout:fragment="script">
+    processErrorMsg();
+    $('#birthDate').datepicker({
+        endDate: '0d',
+        format: 'yyyy-mm-dd',
+        language: 'zh-CN',
+        autoclose: true,
+        // todayBtn: true,
+        todayHighlight: true
+    });
+    function processErrorMsg() {
+        var errorMsg = $('#errorMsg');
+        var errorMsgText = errorMsg.text();
+        try {
+            var errorMsgObject = JSON.parse(errorMsgText);
+            if(errorMsgObject.success) {
+                errorMsg.remove();
+            } else {
+                errorMsg.text(errorMsgObject.message);
+                //todo 各表单项的错误信息
+                var errorMsgDataObject = errorMsgObject.data;
+                var nickname = $('#nickname'), email = $('#email'), password = $('#password'),
+                    verifyPassword = $('#verifyPassword'), birthDate = $('#birthDate'),
+                    hobby = $('#hobby'), autograph = $('#autograph');
+                processErrorMsgItem(errorMsgDataObject.nickname, nickname);
+                processErrorMsgItem(errorMsgDataObject.email, email);
+                processErrorMsgItem(errorMsgDataObject.password, password);
+                processErrorMsgItem(errorMsgDataObject.verifyPassword, verifyPassword);
+                processErrorMsgItemOptional(errorMsgDataObject.birthDate, birthDate);
+                processErrorMsgItemOptional(errorMsgDataObject.hobby, hobby);
+                processErrorMsgItemOptional(errorMsgDataObject.autograph, autograph);
+            }
+        } catch (e) {
+        }
+        function processErrorMsgItem(errorMsgItem, selector) {
+            if(errorMsgItem != null) {
+                selector.addClass('is-invalid');
+                selector.next().text(errorMsgItem);
+            } else {
+                selector.addClass('is-valid');
+            }
+        }
+        function processErrorMsgItemOptional(errorMsgItem, selector) {
+            if(selector.val() !== null && selector.val() !== '') {
+                if (errorMsgItem != null) {
+                    selector.addClass('is-invalid');
+                    selector.next().text(errorMsgItem);
+                } else {
+                    selector.addClass('is-valid');
+                }
+            }
+        }
+    }
+</script>
+</html>

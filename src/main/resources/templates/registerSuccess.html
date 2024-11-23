@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;
+charset=UTF-8"/>
+    <title>注册成功</title>
+</head>
+<body>
+<div class="container" layout:fragment="content">
+    <br><br><br>
+    <h1 class="text-center">注册成功！</h1>
+    <br><br>
+    <h4 class="text-center">您的Fts号码是：<span>ftsId</span></h4>
+    <br>
+    <div style="text-align: center">
+        <a class="btn btn-primary" href="/user/login">转到登录页</a>
+    </div>
+</div>
+</body>
+<script layout:fragment="script">
+</script>
+</html>
