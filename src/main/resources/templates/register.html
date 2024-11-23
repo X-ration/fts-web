@@ -122,12 +122,7 @@ charset=UTF-8"/>
         }
         function processErrorMsgItemOptional(errorMsgItem, selector) {
             if(selector.val() !== null && selector.val() !== '') {
-                if (errorMsgItem != null) {
-                    selector.addClass('is-invalid');
-                    selector.next().text(errorMsgItem);
-                } else {
-                    selector.addClass('is-valid');
-                }
+                processErrorMsgItem(errorMsgItem, selector);
             }
         }
     }
