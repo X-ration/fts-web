@@ -1,6 +1,7 @@
 package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.mapper.UserMapper;
+import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.util.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -53,8 +54,8 @@ public class HelloController {
     @RequestMapping("helloMapper")
     @ResponseBody
     public Response<?> helloMapper() {
-        long maxFtsId = userMapper.queryMaxFtsId();
-        return Response.success(maxFtsId);
+        User user = userMapper.queryUserByFtsId(10000);
+        return Response.success(user);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.config.WebConfig;
+import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.constant.RegisterPageConstant;
 import com.adam.ftsweb.dto.RegisterForm;
 import com.adam.ftsweb.dto.RegisterFormErrorMsg;
@@ -39,31 +40,47 @@ public class UserController {
     public String loginByFtsId(@RequestParam("ftsId") String ftsIdStr, @RequestParam String password, @RequestParam(required = false) boolean rememberMe, RedirectAttributes redirectAttributes) {
         log.debug("loginByFtsId ftsIdStr={},password={},rememberMe={}", ftsIdStr, password, rememberMe);
         if(StringUtils.isBlank(ftsIdStr) || StringUtils.isBlank(password)) {
-            redirectAttributes.addFlashAttribute("error", "无效的请求");
+            redirectAttributes.addFlashAttribute("error", LoginPageConstant.INVALID_REQUEST);
             return "redirect:/user/login";
         }
         int ftsId;
         try {
             ftsId = Integer.parseInt(ftsIdStr);
         } catch (NumberFormatException e) {
-            redirectAttributes.addFlashAttribute("error", "无效的输入");
+            redirectAttributes.addFlashAttribute("error", LoginPageConstant.INPUT_INVALID);
             return "redirect:/user/login";
         }
-        return "redirect:/index";
+        Response<Long> loginResponse = userService.loginByFtsId(ftsId, password, rememberMe);
+        if(loginResponse.isSuccess()) {
+            return "redirect:/index?ftsId=" + ftsId;
+        } else {
+            redirectAttributes.addFlashAttribute("error", loginResponse.getMessage());
+            return "redirect:/user/login";
+        }
     }
 
     @PostMapping("/loginByEmail")
     public String loginByEmail(@RequestParam String email, @RequestParam String password, @RequestParam(required = false) boolean rememberMe, RedirectAttributes redirectAttributes) {
         log.debug("loginByEmail email={},password={},rememberMe={}", email, password, rememberMe);
         if(StringUtils.isBlank(email) || StringUtils.isBlank(password)) {
-            redirectAttributes.addFlashAttribute("error", "无效的请求");
+            redirectAttributes.addFlashAttribute("error", LoginPageConstant.INVALID_REQUEST);
+            return "redirect:/user/login";
+        }
+        if(email.length() > 256) {
+            redirectAttributes.addFlashAttribute("error", LoginPageConstant.EMAIL_LENGTH_EXCEEDED);
             return "redirect:/user/login";
         }
         if(!StringUtil.isEmail(email)) {
-            redirectAttributes.addFlashAttribute("error", "无效的输入");
+            redirectAttributes.addFlashAttribute("error", LoginPageConstant.EMAIL_INVALID);
             return "redirect:/user/login";
         }
-        return "redirect:/index";
+        Response<Long> loginResponse = userService.loginByEmail(email, password, rememberMe);
+        if(loginResponse.isSuccess()) {
+            return "redirect:/index?ftsId=" + loginResponse.getData();
+        } else {
+            redirectAttributes.addFlashAttribute("error", loginResponse.getMessage());
+            return "redirect:/user/login";
+        }
     }
 
     @GetMapping("/register")

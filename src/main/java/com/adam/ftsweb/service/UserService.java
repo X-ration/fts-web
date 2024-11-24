@@ -1,6 +1,7 @@
 package com.adam.ftsweb.service;
 
 import com.adam.ftsweb.config.WebConfig;
+import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.dto.RegisterForm;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.User;
@@ -23,6 +24,40 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe) {
+        Assert.isTrue(StringUtils.isNotBlank(password), "loginByFtsId password blank");
+        User user = userMapper.queryUserByFtsId(ftsId);
+        if(user != null) {
+            String encryptedPassword = user.getPassword(), salt = user.getSalt();
+            boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
+            if(checkPassword) {
+                return Response.success(ftsId);
+            } else {
+                return Response.fail(LoginPageConstant.FTS_ID_OR_PASSWORD_WRONG);
+            }
+        } else {
+            return Response.fail(LoginPageConstant.USER_NOT_FOUND);
+        }
+    }
+
+    public Response<Long> loginByEmail(String email, String password, boolean rememberMe) {
+        Assert.isTrue(StringUtils.isNotBlank(email), "loginByEmail email blank");
+        Assert.isTrue(StringUtils.isNotBlank(password), "loginByEmail password blank");
+        Assert.isTrue(email.length() < 256 && StringUtil.isEmail(email), "loginByEmail email invalid");
+        User user = userMapper.queryUserByEmail(email);
+        if(user != null) {
+            String encryptedPassword = user.getPassword(), salt = user.getSalt();
+            boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
+            if(checkPassword) {
+                return Response.success(user.getFtsId());
+            } else {
+                return Response.fail(LoginPageConstant.EMAIL_OR_PASSWORD_WRONG);
+            }
+        } else {
+            return Response.fail(LoginPageConstant.USER_NOT_FOUND);
+        }
+    }
 
     @Transactional
     public Response<Long> registerUser(RegisterForm registerForm) {

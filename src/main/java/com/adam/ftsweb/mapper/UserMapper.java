@@ -2,10 +2,7 @@ package com.adam.ftsweb.mapper;
 
 import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.po.UserExtend;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 public interface UserMapper {
 
@@ -29,5 +26,64 @@ public interface UserMapper {
     })
     @Options(useGeneratedKeys=true, keyProperty="id")
     int insertUserExtend(UserExtend userExtend);
+
+    @Select("SELECT COUNT(*) FROM user WHERE fts_id=#{ftsId} AND is_enabled=true")
+    int queryUserCountByFtsId(long ftsId);
+
+    @Select("SELECT fts_id FROM user WHERE email=#{email} AND is_enabled=true LIMIT 1")
+    Long queryFtsIdByEmail(String email);
+
+    @Select({"SELECT id,fts_id,email,nickname,password,salt,is_enabled,create_time,update_time",
+            "FROM user",
+            "WHERE fts_id=#{ftsId} AND is_enabled=true"
+    })
+    @Results({
+            @Result(id = true, column = "id", property = "id"),
+            @Result(column = "fts_id", property = "ftsId"),
+            @Result(column = "email", property = "email"),
+            @Result(column = "nickname", property = "nickname"),
+            @Result(column = "password", property = "password"),
+            @Result(column = "salt", property = "salt"),
+            @Result(column = "is_enabled", property = "isEnabled"),
+            @Result(column = "create_time", property = "createTime"),
+            @Result(column = "update_time", property = "updateTime"),
+            @Result(property = "userExtend", column = "id", one = @One(select =
+                    "com.adam.ftsweb.mapper.UserMapper.queryUserExtendByUserId"))
+    })
+    User queryUserByFtsId(long ftsId);
+
+    @Select({"SELECT id,fts_id,email,nickname,password,salt,is_enabled,create_time,update_time",
+            "FROM user",
+            "WHERE email=#{email} AND is_enabled=true"
+    })
+    @Results({
+            @Result(id = true, column = "id", property = "id"),
+            @Result(column = "fts_id", property = "ftsId"),
+            @Result(column = "email", property = "email"),
+            @Result(column = "nickname", property = "nickname"),
+            @Result(column = "password", property = "password"),
+            @Result(column = "salt", property = "salt"),
+            @Result(column = "is_enabled", property = "isEnabled"),
+            @Result(column = "create_time", property = "createTime"),
+            @Result(column = "update_time", property = "updateTime"),
+            @Result(property = "userExtend", column = "id", one = @One(select =
+                    "com.adam.ftsweb.mapper.UserMapper.queryUserExtendByUserId"))
+    })
+    User queryUserByEmail(String email);
+
+    @Select({"SELECT id,user_id,birth_date,hobby,autograph,create_time,update_time",
+            "FROM user_extend",
+            "WHERE user_id=#{userId}"
+    })
+    @Results({
+            @Result(id = true, column = "id", property = "id"),
+            @Result(column = "user_id", property = "userId"),
+            @Result(column = "birth_date", property = "birthDate"),
+            @Result(column = "hobby", property = "hobby"),
+            @Result(column = "autograph", property = "autograph"),
+            @Result(column = "create_time", property = "createTime"),
+            @Result(column = "update_time", property = "updateTime")
+    })
+    UserExtend queryUserExtendByUserId(long userId);
 
 }
