@@ -10,6 +10,9 @@ import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.po.UserExtend;
 import com.adam.ftsweb.util.Response;
 import com.adam.ftsweb.util.StringUtil;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +37,7 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
-    private final Map<String, UserTokenMapItem> userTokenToFtsIdMap = new ConcurrentHashMap<>();
+    private final BiMap<String, UserTokenMapItem> userTokenToFtsIdMap = Maps.synchronizedBiMap(HashBiMap.create());
 
     public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByFtsId password blank");
