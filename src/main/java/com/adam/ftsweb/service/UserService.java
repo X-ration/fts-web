@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -27,33 +29,39 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session) {
+    public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByFtsId password blank");
         User user = userMapper.queryUserByFtsId(ftsId);
         if(user != null) {
-            return login(user, password, rememberMe, session);
+            return login(user, password, rememberMe, session, response);
         } else {
             return Response.fail(LoginPageConstant.USER_NOT_FOUND);
         }
     }
 
-    public Response<Long> loginByEmail(String email, String password, boolean rememberMe, HttpSession session) {
+    public Response<Long> loginByEmail(String email, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
         Assert.isTrue(StringUtils.isNotBlank(email), "loginByEmail email blank");
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByEmail password blank");
         Assert.isTrue(email.length() < 256 && StringUtil.isEmail(email), "loginByEmail email invalid");
         User user = userMapper.queryUserByEmail(email);
         if(user != null) {
-            return login(user, password, rememberMe, session);
+            return login(user, password, rememberMe, session, response);
         } else {
             return Response.fail(LoginPageConstant.USER_NOT_FOUND);
         }
     }
 
-    private Response<Long> login(User user, String password, boolean rememberMe, HttpSession session) {
+    private Response<Long> login(User user, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
         String encryptedPassword = user.getPassword(), salt = user.getSalt();
         boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
         if(checkPassword) {
             session.setAttribute(SystemConstant.SESSION_LOGIN_FTS_ID_KEY, user.getFtsId());
+            if(rememberMe) {
+                Cookie cookie = new Cookie(SystemConstant.COOKIE_LOGIN_FTS_ID_KEY, String.valueOf(user.getFtsId()));
+                cookie.setMaxAge(SystemConstant.COOKIE_LOGIN_FTS_ID_MAX_AGE);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            }
             return Response.success(user.getFtsId());
         } else {
             return Response.fail(LoginPageConstant.FTS_ID_OR_PASSWORD_WRONG);

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
@@ -33,6 +34,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private HttpServletRequest request;
+    @Autowired
+    private HttpServletResponse response;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -53,7 +56,7 @@ public class UserController {
             redirectAttributes.addFlashAttribute("error", LoginPageConstant.INPUT_INVALID);
             return "redirect:/user/login";
         }
-        Response<Long> loginResponse = userService.loginByFtsId(ftsId, password, rememberMe, request.getSession());
+        Response<Long> loginResponse = userService.loginByFtsId(ftsId, password, rememberMe, request.getSession(), response);
         if(loginResponse.isSuccess()) {
             return "redirect:/index";
         } else {
@@ -77,7 +80,7 @@ public class UserController {
             redirectAttributes.addFlashAttribute("error", LoginPageConstant.EMAIL_INVALID);
             return "redirect:/user/login";
         }
-        Response<Long> loginResponse = userService.loginByEmail(email, password, rememberMe, request.getSession());
+        Response<Long> loginResponse = userService.loginByEmail(email, password, rememberMe, request.getSession(), response);
         if(loginResponse.isSuccess()) {
             return "redirect:/index";
         } else {
