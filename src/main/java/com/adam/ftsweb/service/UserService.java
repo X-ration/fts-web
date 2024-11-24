@@ -2,6 +2,7 @@ package com.adam.ftsweb.service;
 
 import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.LoginPageConstant;
+import com.adam.ftsweb.constant.SystemConstant;
 import com.adam.ftsweb.dto.RegisterForm;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.User;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -25,37 +27,36 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe) {
+    public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session) {
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByFtsId password blank");
         User user = userMapper.queryUserByFtsId(ftsId);
         if(user != null) {
-            String encryptedPassword = user.getPassword(), salt = user.getSalt();
-            boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
-            if(checkPassword) {
-                return Response.success(ftsId);
-            } else {
-                return Response.fail(LoginPageConstant.FTS_ID_OR_PASSWORD_WRONG);
-            }
+            return login(user, password, rememberMe, session);
         } else {
             return Response.fail(LoginPageConstant.USER_NOT_FOUND);
         }
     }
 
-    public Response<Long> loginByEmail(String email, String password, boolean rememberMe) {
+    public Response<Long> loginByEmail(String email, String password, boolean rememberMe, HttpSession session) {
         Assert.isTrue(StringUtils.isNotBlank(email), "loginByEmail email blank");
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByEmail password blank");
         Assert.isTrue(email.length() < 256 && StringUtil.isEmail(email), "loginByEmail email invalid");
         User user = userMapper.queryUserByEmail(email);
         if(user != null) {
-            String encryptedPassword = user.getPassword(), salt = user.getSalt();
-            boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
-            if(checkPassword) {
-                return Response.success(user.getFtsId());
-            } else {
-                return Response.fail(LoginPageConstant.EMAIL_OR_PASSWORD_WRONG);
-            }
+            return login(user, password, rememberMe, session);
         } else {
             return Response.fail(LoginPageConstant.USER_NOT_FOUND);
+        }
+    }
+
+    private Response<Long> login(User user, String password, boolean rememberMe, HttpSession session) {
+        String encryptedPassword = user.getPassword(), salt = user.getSalt();
+        boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
+        if(checkPassword) {
+            session.setAttribute(SystemConstant.SESSION_LOGIN_FTS_ID_KEY, user.getFtsId());
+            return Response.success(user.getFtsId());
+        } else {
+            return Response.fail(LoginPageConstant.FTS_ID_OR_PASSWORD_WRONG);
         }
     }
 

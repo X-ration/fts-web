@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
@@ -30,6 +31,8 @@ public class UserController {
     private ObjectMapper objectMapper;
     @Autowired
     private UserService userService;
+    @Autowired
+    private HttpServletRequest request;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -50,9 +53,9 @@ public class UserController {
             redirectAttributes.addFlashAttribute("error", LoginPageConstant.INPUT_INVALID);
             return "redirect:/user/login";
         }
-        Response<Long> loginResponse = userService.loginByFtsId(ftsId, password, rememberMe);
+        Response<Long> loginResponse = userService.loginByFtsId(ftsId, password, rememberMe, request.getSession());
         if(loginResponse.isSuccess()) {
-            return "redirect:/index?ftsId=" + ftsId;
+            return "redirect:/index";
         } else {
             redirectAttributes.addFlashAttribute("error", loginResponse.getMessage());
             return "redirect:/user/login";
@@ -74,9 +77,9 @@ public class UserController {
             redirectAttributes.addFlashAttribute("error", LoginPageConstant.EMAIL_INVALID);
             return "redirect:/user/login";
         }
-        Response<Long> loginResponse = userService.loginByEmail(email, password, rememberMe);
+        Response<Long> loginResponse = userService.loginByEmail(email, password, rememberMe, request.getSession());
         if(loginResponse.isSuccess()) {
-            return "redirect:/index?ftsId=" + loginResponse.getData();
+            return "redirect:/index";
         } else {
             redirectAttributes.addFlashAttribute("error", loginResponse.getMessage());
             return "redirect:/user/login";
