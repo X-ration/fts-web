@@ -1,5 +1,6 @@
 package com.adam.ftsweb.service;
 
+import com.adam.ftsweb.common.UserTokenMapItem;
 import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.constant.SystemConstant;
@@ -20,7 +21,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
@@ -28,6 +32,7 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+    private final Map<String, UserTokenMapItem> userTokenToFtsIdMap = new ConcurrentHashMap<>();
 
     public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByFtsId password blank");
@@ -55,16 +60,61 @@ public class UserService {
         String encryptedPassword = user.getPassword(), salt = user.getSalt();
         boolean checkPassword = StringUtil.checkPasswordMD5(password, encryptedPassword, salt);
         if(checkPassword) {
-            session.setAttribute(SystemConstant.SESSION_LOGIN_FTS_ID_KEY, user.getFtsId());
+            String token = StringUtil.generate32digitRandomUUID();
+            UserTokenMapItem userTokenMapItem = new UserTokenMapItem();
+            userTokenMapItem.setFtsId(user.getFtsId());
+            LocalDateTime now = LocalDateTime.now();
+            userTokenMapItem.setCreateTime(now);
+            userTokenMapItem.setUpdateTime(now);
+            userTokenMapItem.setExpireSeconds(SystemConstant.USER_TOKEN_TO_FTS_ID_MAP_DEFAULT_EXPIRES);
+            userTokenToFtsIdMap.put(token, userTokenMapItem);
+            session.setAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY, token);
             if(rememberMe) {
-                Cookie cookie = new Cookie(SystemConstant.COOKIE_LOGIN_FTS_ID_KEY, String.valueOf(user.getFtsId()));
-                cookie.setMaxAge(SystemConstant.COOKIE_LOGIN_FTS_ID_MAX_AGE);
+                Cookie cookie = new Cookie(SystemConstant.COOKIE_LOGIN_FTS_TOKEN_KEY, token);
+                cookie.setMaxAge(SystemConstant.COOKIE_LOGIN_FTS_TOKEN_MAX_AGE);
                 cookie.setPath("/");
                 response.addCookie(cookie);
             }
             return Response.success(user.getFtsId());
         } else {
             return Response.fail(LoginPageConstant.FTS_ID_OR_PASSWORD_WRONG);
+        }
+    }
+
+    /**
+     * 仅供测试
+     * @param token
+     * @return
+     */
+    public UserTokenMapItem getUserTokenMapItem(String token) {
+        return userTokenToFtsIdMap.get(token);
+    }
+
+    /**
+     * token换ftsId，自动清理过期项
+     * @param token
+     * @return
+     */
+    public Long getFtsIdByTokenAndRefresh(String token) {
+        Assert.isTrue(StringUtils.isNotBlank(token), "getFtsIdByToken token blank");
+        UserTokenMapItem userTokenMapItem = userTokenToFtsIdMap.get(token);
+        if(userTokenMapItem == null) {
+            return null;
+        } else {
+            LocalDateTime createTime = userTokenMapItem.getCreateTime(),
+                    updateTime = userTokenMapItem.getUpdateTime(),
+                    expireTime = createTime.plusSeconds(userTokenMapItem.getExpireSeconds());
+            if(!expireTime.isAfter(LocalDateTime.now())) {
+                log.debug("手动清理userTokenToFtsIdMap token={}", token);
+                userTokenToFtsIdMap.remove(token);
+                return null;
+            } else {
+                LocalDateTime now = LocalDateTime.now();
+                long addSeconds = ChronoUnit.SECONDS.between(updateTime, now);
+                userTokenMapItem.setExpireSeconds(userTokenMapItem.getExpireSeconds() + addSeconds);
+                userTokenMapItem.setUpdateTime(now);
+                return userTokenMapItem.getFtsId();
+            }
         }
     }
 

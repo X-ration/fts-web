@@ -1,11 +1,14 @@
 package com.adam.ftsweb.controller;
 
+import com.adam.ftsweb.common.UserTokenMapItem;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.User;
+import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
@@ -18,6 +21,8 @@ public class HelloController {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private UserService userService;
 
     @RequestMapping("hello")
     @ResponseBody
@@ -56,6 +61,13 @@ public class HelloController {
     public Response<?> helloMapper() {
         User user = userMapper.queryUserByFtsId(10000);
         return Response.success(user);
+    }
+
+    @RequestMapping("helloToken")
+    @ResponseBody
+    public Response<?> helloToken(@RequestParam String token) {
+        UserTokenMapItem item = userService.getUserTokenMapItem(token);
+        return Response.success(item);
     }
 
 }

@@ -29,6 +29,10 @@ public class StringUtil {
     }
 
     public static String generatePasswordSalt() {
+        return generate32digitRandomUUID();
+    }
+
+    public static String generate32digitRandomUUID() {
         return UUID.randomUUID().toString().replace("-","");
     }
 

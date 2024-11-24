@@ -39,6 +39,8 @@ public class WebConfig implements WebMvcConfigurer {
             "classpath:/META-INF/resources/", "classpath:/resources/",
             "classpath:/static/", "classpath:/public/" };
 
+    @Autowired
+    private LoginInterceptor loginInterceptor;
 
     /**
      * 解决No mapping for GET /bootstrap/css/bootstrap.min.css.map
@@ -57,7 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoginInterceptor()).addPathPatterns("/**")
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/**")
                 .excludePathPatterns("/user/login", "/user/loginByFtsId", "/user/loginByEmail", "/user/register");
     }
 
