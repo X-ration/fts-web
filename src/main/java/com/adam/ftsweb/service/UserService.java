@@ -13,6 +13,7 @@ import com.adam.ftsweb.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -103,18 +105,35 @@ public class UserService {
         } else {
             LocalDateTime createTime = userTokenMapItem.getCreateTime(),
                     updateTime = userTokenMapItem.getUpdateTime(),
-                    expireTime = createTime.plusSeconds(userTokenMapItem.getExpireSeconds());
-            if(!expireTime.isAfter(LocalDateTime.now())) {
+                    expireTime = createTime.plusSeconds(userTokenMapItem.getExpireSeconds()),
+                    now = LocalDateTime.now();
+            if(!expireTime.isAfter(now)) {
                 log.debug("手动清理userTokenToFtsIdMap token={}", token);
                 userTokenToFtsIdMap.remove(token);
                 return null;
             } else {
-                LocalDateTime now = LocalDateTime.now();
                 long addSeconds = ChronoUnit.SECONDS.between(updateTime, now);
                 userTokenMapItem.setExpireSeconds(userTokenMapItem.getExpireSeconds() + addSeconds);
                 userTokenMapItem.setUpdateTime(now);
                 return userTokenMapItem.getFtsId();
             }
+        }
+    }
+
+    @Scheduled(cron = "* 0,30 *  * * ?")
+    public void automaticCleanExpiredUserTokenMapItems() {
+        log.info("[Scheduled]UserService automaticCleanExpiredUserTokenMapItems runs");
+        for(Iterator<Map.Entry<String, UserTokenMapItem>> iterator = userTokenToFtsIdMap.entrySet().iterator(); iterator.hasNext();) {
+//        for (Map.Entry<String, UserTokenMapItem> entry: userTokenToFtsIdMap.entrySet()) {
+            Map.Entry<String, UserTokenMapItem> entry = iterator.next();
+            String token = entry.getKey();
+            UserTokenMapItem userTokenMapItem = entry.getValue();
+            LocalDateTime createTime = userTokenMapItem.getCreateTime(),
+                    expireTime = createTime.plusSeconds(userTokenMapItem.getExpireSeconds());
+            if(!expireTime.isAfter(LocalDateTime.now())) {{
+                iterator.remove();
+                log.debug("自动清理userTokenToFtsIdMap token={}", token);
+            }}
         }
     }
 
