@@ -123,7 +123,7 @@ public class UserService {
         }
     }
 
-    @Scheduled(cron = "* 0,30 *  * * ?")
+    @Scheduled(cron = "0 0,30 *  * * ?")
     public void automaticCleanExpiredUserTokenMapItems() {
         log.info("[Scheduled]UserService automaticCleanExpiredUserTokenMapItems runs");
         for(Iterator<Map.Entry<String, UserTokenMapItem>> iterator = userTokenToFtsIdMap.entrySet().iterator(); iterator.hasNext();) {
