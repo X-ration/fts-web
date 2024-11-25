@@ -35,6 +35,15 @@ public class HelloController {
         return "hello";
     }
 
+    /**
+     * 仅供测试
+     * @return
+     */
+    @RequestMapping("helloIndexPage")
+    public String helloIndexPage() {
+        return "index";
+    }
+
     @RequestMapping("helloDate")
     @ResponseBody
     public Response<?> helloDate() {

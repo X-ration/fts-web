@@ -8,10 +8,153 @@ charset=UTF-8"/>
     <title>Fts-web文件互传系统</title>
 </head>
 <body>
-<div class="container" layout:fragment="content">
+<div id="rootContainer" class="container-fluid" layout:fragment="content">
     Hello<span th:text="${token}">token</span>
+    <div class="row flex-xl-nowrap ml-2 mr-2">
+        <div class="col-12 col-md-3 col-xl-2 bd-sidebar">
+            <form class="bd-search d-flex align-items-center">
+                <input type="search" class="form-control" id="searchUser" placeholder="搜索用户" aria-label="Search for user" autocomplete="off">
+                <button class="btn btn-link bd-search-docs-toggle d-md-none p-0 ml-3" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" role="img" focusable="false">
+                        <title>Menu</title>
+                        <path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path>
+                    </svg>
+                </button>
+            </form>
+            <nav class="bd-links collapse" id="sidebar">
+                <div class="bd-toc-item">
+                    <div class="bd-toc-link">
+                        <h4>用户名</h4>
+                        <p>消息内容</p>
+                    </div>
+                    <div onclick="alert('hello')" style="cursor: pointer;" class="bd-toc-link">
+                        <h4>用户名</h4>
+                        <p>消息内容</p>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="d-none d-xl-block col-xl-3 bd-toc">
+            Right Sidebar
+        </div>
+        <main id="mainContainer" class="col-12 col-md-9 col-xl-7 py-md-3 pl-md-5 bd-content" role="main">
+            <div class="d-flex flex-column">
+                <div class="row" style="position: relative">
+                    <h4>与用户1对话中</h4>
+                    <div class="d-flex justify-content-end" style="position: absolute; right: 0">
+                        <button class="btn btn-outline-primary" type="button" id="showProfile" data-toggle="modal" data-target="#showProfileModal">查看资料</button>
+                        <button class="btn btn-outline-primary" type="button" id="modifyProfile" data-toggle="modal" data-target="#modifyProfileModal">修改资料</button>
+                    </div>
+                </div>
+                <hr>
+                <button class="btn btn-outline-primary btn-block mb-1" id="clearAllMessages">清理信息</button>
+                <div id="messageList" class="row d-flex flex-column">
+                    <div class="row justify-content-start">
+                        <div class="card rounded border border-success" style="width: 18rem;">
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-start">
+                        <div class="card rounded border border-success" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">文件传输请求</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">用户1正在向你传输文件1.image</h6>
+                                <button class="btn btn-outline-primary" type="button">接收文件</button>
+                                <button class="btn btn-outline-warning" type="button">拒绝接收</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-end">
+                        <div class="card rounded border border-success" style="width: 18rem;">
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-end">
+                        <div class="card rounded border border-success" style="width: 18rem;">
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-end">
+                        <div class="card rounded border border-success" style="width: 18rem;">
+                            <div class="card-body">
+                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div id="messageBox">
+                    <textarea class="form-control mb-1" id="messageTextArea" rows="3"></textarea>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary">发送消息</button>
+                        <button type="button" class="btn btn-primary">发送文件</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="modal fade" id="showProfileModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="showProfileModalTitle">用户1的资料</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        对方资料
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modifyProfileModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modifyProfileModalTitle">修改资料</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        我的资料
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary">保存修改</button>
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 <script layout:fragment="script">
+    var windowHeight = $(window).height();
+    var rootContainerStyle = "position: relative; min-height: " + windowHeight + "px";
+    $('#rootContainer').attr('style', rootContainerStyle);
+    //监听窗口大小变化
+    window.addEventListener('resize', windowSizeChangeFunction);
+    windowSizeChangeFunction();
+    function windowSizeChangeFunction() {
+        var windowWidth = window.innerWidth, windowHeight = window.innerHeight;
+        var cards = $('#messageList div.card');
+        var messageList = $('#messageList');
+        for(var i=0;i<cards.length;i++) {
+            var card = cards[i];
+            var parentWidth = messageList.width();
+            var width = Math.floor(parentWidth * 2 / 3);
+            card.setAttribute('style', 'width: ' + width + 'px;');
+        }
+    }
 </script>
 </html>
