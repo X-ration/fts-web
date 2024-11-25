@@ -11,7 +11,9 @@ import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -26,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Configuration
 @EnableWebMvc
@@ -41,6 +44,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private LoginInterceptor loginInterceptor;
+    @Autowired
+    private Jackson2ObjectMapperBuilder builder;
 
     /**
      * 解决No mapping for GET /bootstrap/css/bootstrap.min.css.map
@@ -59,18 +64,17 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/**")
-                .excludePathPatterns("/user/login", "/user/loginByFtsId", "/user/loginByEmail", "/user/register");
+        //避免拦截静态资源，手动添加需要拦截的路径
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/index");
     }
 
     /**
-     * Jackson ObjectMapper，日期格式相关配置
-     * 参见JacksonHttpMessageConvertersConfiguration
-     * @param builder
-     * @return
+     * 解决Jackson日期格式因为配置拦截器继承自WebMvcConfigurer失效的问题
+     * @param converters the list of configured converters to be extended
      */
-    @Bean
-    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
+    @Override
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         ObjectMapper objectMapper = builder.createXmlMapper(false)
                 .serializerByType(LocalDateTime.class, new LocalDateTimeSerializer(DATE_TIME_FORMATTER))
                 .deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(DATE_TIME_FORMATTER))
@@ -81,7 +85,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .build();
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-        return objectMapper;
+        converter.setObjectMapper(objectMapper);
+        converters.add(0, converter);
     }
 
     @Bean

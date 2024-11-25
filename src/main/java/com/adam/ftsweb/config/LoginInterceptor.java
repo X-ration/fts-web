@@ -22,21 +22,23 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //1.记住我实现
-        for(Cookie cookie: request.getCookies()) {
-            if(StringUtils.equals(cookie.getName(), SystemConstant.COOKIE_LOGIN_FTS_TOKEN_KEY)) {
-                String value = cookie.getValue();
-                Long ftsId = userService.getFtsIdByTokenAndRefresh(value);
-                if(ftsId != null) {
-                    cookie.setMaxAge(SystemConstant.COOKIE_LOGIN_FTS_TOKEN_MAX_AGE);
-                    response.addCookie(cookie);
-                    request.getSession().setAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY, value);
-                    return true;
-                } else {
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
-                    log.warn("Bad cookie [key={},value={}] ,discarding", cookie.getName(), value);
+        if(request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (StringUtils.equals(cookie.getName(), SystemConstant.COOKIE_LOGIN_FTS_TOKEN_KEY)) {
+                    String value = cookie.getValue();
+                    Long ftsId = userService.getFtsIdByTokenAndRefresh(value);
+                    if (ftsId != null) {
+                        cookie.setMaxAge(SystemConstant.COOKIE_LOGIN_FTS_TOKEN_MAX_AGE);
+                        response.addCookie(cookie);
+                        request.getSession().setAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY, value);
+                        return true;
+                    } else {
+                        cookie.setMaxAge(0);
+                        response.addCookie(cookie);
+                        log.warn("Bad cookie [key={},value={}] ,discarding", cookie.getName(), value);
+                    }
+                    break;
                 }
-                break;
             }
         }
         //2.默认存储于会话(session)级别

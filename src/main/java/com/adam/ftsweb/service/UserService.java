@@ -96,7 +96,7 @@ public class UserService {
     }
 
     /**
-     * token换ftsId，自动清理过期项
+     * token换ftsId，自动清理过期项，自动延期
      * @param token
      * @return
      */
