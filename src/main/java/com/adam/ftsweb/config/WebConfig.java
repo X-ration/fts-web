@@ -1,5 +1,7 @@
 package com.adam.ftsweb.config;
 
+import com.adam.ftsweb.controller.WebSocketController;
+import com.adam.ftsweb.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -19,6 +21,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
@@ -32,6 +36,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebMvc
+@EnableWebSocket
 public class WebConfig implements WebMvcConfigurer {
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -65,7 +70,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         //避免拦截静态资源，手动添加需要拦截的路径
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/index");
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/index", "/ws");
     }
 
     /**
@@ -114,6 +119,18 @@ public class WebConfig implements WebMvcConfigurer {
         templateEngine.addDialect(new LayoutDialect());
         templateEngine.setTemplateResolver(templateResolver);
         return templateEngine;
+    }
+
+    @Bean
+    public ServerEndpointExporter serverEndpointExporter() {
+        ServerEndpointExporter exporter = new ServerEndpointExporter();
+        exporter.setAnnotatedEndpointClasses(WebSocketController.class);
+        return exporter;
+    }
+
+    @Autowired
+    public void setWebSocketUserService(UserService userService) {
+        WebSocketController.setUserService(userService);
     }
 
 }

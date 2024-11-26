@@ -29,7 +29,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
@@ -98,9 +97,10 @@ public class UserService {
     /**
      * token换ftsId，自动清理过期项，自动延期
      * @param token
+     * @param refresh 是否更新过期时间
      * @return
      */
-    public Long getFtsIdByTokenAndRefresh(String token) {
+    public Long getFtsIdByToken(String token, boolean refresh) {
         Assert.isTrue(StringUtils.isNotBlank(token), "getFtsIdByToken token blank");
         UserTokenMapItem userTokenMapItem = userTokenToFtsIdMap.get(token);
         if(userTokenMapItem == null) {
@@ -115,9 +115,11 @@ public class UserService {
                 userTokenToFtsIdMap.remove(token);
                 return null;
             } else {
-                long addSeconds = ChronoUnit.SECONDS.between(updateTime, now);
-                userTokenMapItem.setExpireSeconds(userTokenMapItem.getExpireSeconds() + addSeconds);
-                userTokenMapItem.setUpdateTime(now);
+                if(refresh) {
+                    long addSeconds = ChronoUnit.SECONDS.between(updateTime, now);
+                    userTokenMapItem.setExpireSeconds(userTokenMapItem.getExpireSeconds() + addSeconds);
+                    userTokenMapItem.setUpdateTime(now);
+                }
                 return userTokenMapItem.getFtsId();
             }
         }

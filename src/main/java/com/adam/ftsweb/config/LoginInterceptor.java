@@ -21,12 +21,13 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        log.debug("LoginInterceptor preHandle");
         //1.记住我实现
         if(request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (StringUtils.equals(cookie.getName(), SystemConstant.COOKIE_LOGIN_FTS_TOKEN_KEY)) {
                     String value = cookie.getValue();
-                    Long ftsId = userService.getFtsIdByTokenAndRefresh(value);
+                    Long ftsId = userService.getFtsIdByToken(value, true);
                     if (ftsId != null) {
                         cookie.setMaxAge(SystemConstant.COOKIE_LOGIN_FTS_TOKEN_MAX_AGE);
                         response.addCookie(cookie);
@@ -44,7 +45,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         //2.默认存储于会话(session)级别
         Object object = request.getSession().getAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY);
         if(object instanceof String) {
-            Long ftsId = userService.getFtsIdByTokenAndRefresh((String) object);
+            Long ftsId = userService.getFtsIdByToken((String) object, true);
             if(ftsId != null) {
                 return true;
             }

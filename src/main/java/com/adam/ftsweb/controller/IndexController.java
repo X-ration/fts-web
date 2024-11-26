@@ -29,7 +29,7 @@ public class IndexController {
         Object object = request.getSession().getAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY);
         if(object instanceof String) {
             String token = (String) object;
-            Long ftsId = userService.getFtsIdByTokenAndRefresh(token);
+            Long ftsId = userService.getFtsIdByToken(token, true);
             if(ftsId != null) {
                 log.debug("indexPage ftsId={} token={}", ftsId, token);
                 model.addAttribute("token", token);

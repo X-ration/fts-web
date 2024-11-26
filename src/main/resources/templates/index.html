@@ -92,8 +92,8 @@ charset=UTF-8"/>
                 <div id="messageBox">
                     <textarea class="form-control mb-1" id="messageTextArea" rows="3"></textarea>
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-primary">发送消息</button>
-                        <button type="button" class="btn btn-primary">发送文件</button>
+                        <button type="button" id="sendMessageButton" class="btn btn-primary">发送消息</button>
+                        <button type="button" id="sendFileButton" class="btn btn-primary">发送文件</button>
                     </div>
                 </div>
             </div>
@@ -138,7 +138,7 @@ charset=UTF-8"/>
     </div>
 </div>
 </body>
-<script layout:fragment="script">
+<script layout:fragment="script" th:inline="javascript">
     var windowHeight = $(window).height();
     var rootContainerStyle = "position: relative; min-height: " + windowHeight + "px";
     $('#rootContainer').attr('style', rootContainerStyle);
@@ -155,6 +155,34 @@ charset=UTF-8"/>
             var width = Math.floor(parentWidth * 2 / 3);
             card.setAttribute('style', 'width: ' + width + 'px;');
         }
+    }
+    if('WebSocket' in window) {
+        var webSocket = new WebSocket([[@{/ws/}]] + [[${token}]]);
+        webSocket.onopen = function(event) {
+            console.log('建立连接');
+        };
+        webSocket.onclose = function(event) {
+            console.log('断开连接');
+        };
+        webSocket.onerror = function(ex) {
+            alert('error')
+            console.log(ex)
+        };
+        /*<![CDATA[*/
+        webSocket.onmessage = function(event) {
+            console.log('接收到消息:' + event.data);
+        };/*]]>*/
+        window.onbeforeunload = function (){
+            webSocket.close();
+        };
+        $('#sendMessageButton').bind('click', function () {
+            var messageText = $('#messageTextArea').val();
+            if (messageText !== '' && webSocket.readyState === WebSocket.OPEN) {
+                webSocket.send(messageText);
+            }
+        });
+    } else {
+        alert('Not support websocket')
     }
 </script>
 </html>
