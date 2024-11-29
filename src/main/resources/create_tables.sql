@@ -35,3 +35,26 @@ CREATE TABLE `user_fts_id`(
     `max_fts_id` BIGINT(64) NOT NULL DEFAULT 9999
 )ENGINE=INNODB DEFAULT CHARSET=utf8;
 INSERT INTO `user_fts_id`(`max_fts_id`) VALUES (9999);
+
+-- 聊天消息表
+DROP TABLE IF EXISTS `message`;
+CREATE TABLE `message`(
+    `id` bigint(64) NOT NULL AUTO_INCREMENT,
+    `from_fts_id` bigint(64) NOT NULL,
+    `to_fts_id` bigint(64) NOT NULL,
+    `text` VARCHAR(256) NOT NULL,
+    `message_type` ENUM ('text','file') NOT NULL,
+    `file_url` VARCHAR(256),
+    `is_show` bool NOT NULL DEFAULT TRUE,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(`id`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+-- 好友关系表
+DROP TABLE IF EXISTS `friend_relationship`;
+CREATE TABLE `friend_relationship`(
+    `user_fts_id` bigint(64) NOT NULL,
+    `another_user_fts_id` bigint(64) NOT NULL,
+    `add_type` ENUM ('web') NOT NULL,
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+)ENGINE=INNODB DEFAULT CHARSET=utf8;

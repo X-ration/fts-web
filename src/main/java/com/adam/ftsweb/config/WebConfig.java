@@ -129,8 +129,8 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Autowired
-    public void setWebSocketUserService(UserService userService) {
-        WebSocketController.setUserService(userService);
+    public void setWebSocketUserService(UserService userService, ObjectMapper objectMapper) {
+        WebSocketController.setUserService(userService, objectMapper);
     }
 
 }

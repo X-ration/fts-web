@@ -22,13 +22,11 @@ charset=UTF-8"/>
                 </button>
             </form>
             <nav class="bd-links collapse" id="sidebar">
-                <div class="bd-toc-item">
-                    <div class="bd-toc-link">
-                        <h4>用户名</h4>
-                        <p>消息内容</p>
-                    </div>
-                    <div onclick="alert('hello')" style="cursor: pointer;" class="bd-toc-link">
-                        <h4>用户名</h4>
+                <button type="button" class="btn btn-outline-primary btn-block" data-toggle="modal" data-target="#addFriendModal">添加好友</button>
+                <div class="bd-toc-item" id="friendListContainer">
+                    <div onclick="alert('hello')" style="cursor: pointer;" class="d-none bd-toc-link">
+                        <h4><strong>用户名</strong></h4>
+                        <span class="d-none">ftsId</span>
                         <p>消息内容</p>
                     </div>
                 </div>
@@ -102,7 +100,7 @@ charset=UTF-8"/>
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="showProfileModalTitle">用户1的资料</h5>
+                        <h5 class="modal-title">用户1的资料</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -120,7 +118,7 @@ charset=UTF-8"/>
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modifyProfileModalTitle">修改资料</h5>
+                        <h5 class="modal-title">修改资料</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -131,6 +129,27 @@ charset=UTF-8"/>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary">保存修改</button>
                         <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="addFriendModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">添加好友</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <input type="text" class="form-control" id="addFriendFtsId" placeholder="输入Fts号码">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="addFriendButton" type="button" class="btn btn-primary">添加</button>
+                        <button id="closeAddFriendButton" type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
                     </div>
                 </div>
             </div>
@@ -171,15 +190,55 @@ charset=UTF-8"/>
         /*<![CDATA[*/
         webSocket.onmessage = function(event) {
             console.log('接收到消息:' + event.data);
+            var responseDTO = JSON.parse(event.data);
+            switch (responseDTO.type) {
+                case 'ADD_FRIEND_RESULT':
+                    var status = responseDTO.success;
+                    if(status) {
+                        alert("添加成功");
+                        $('#addFriendModal').modal('hide');
+                        $('#addFriendFtsId').val('');
+                        var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
+                        addedFriendDiv.removeClass('d-none');
+                        addedFriendDiv.find("h4:first strong:first").html(responseDTO.data.nickname);
+                        addedFriendDiv.children("span:first").html(responseDTO.data.userFtsId);
+                        addedFriendDiv.children("p:first").html(responseDTO.data.helloMessage);
+                        $('#friendListContainer').prepend(addedFriendDiv);
+                    } else {
+                        alert("添加失败:" + responseDTO.message);
+                    }
+                    break;
+            }
         };/*]]>*/
         window.onbeforeunload = function (){
             webSocket.close();
         };
         $('#sendMessageButton').bind('click', function () {
+            if(webSocket.readyState !== WebSocket.OPEN) {
+                alert("已断开连接，请刷新页面重试");
+                return;
+            }
             var messageText = $('#messageTextArea').val();
-            if (messageText !== '' && webSocket.readyState === WebSocket.OPEN) {
+            if (messageText !== '') {
                 webSocket.send(messageText);
             }
+        });
+        $('#addFriendButton').bind('click', function () {
+            if(webSocket.readyState !== WebSocket.OPEN) {
+                alert("已断开连接，请刷新页面重试");
+                return;
+            }
+            var friendFtsIdStr = $('#addFriendFtsId').val();
+            if(friendFtsIdStr === '') {
+                return;
+            }
+            var friendFtsId = Number.parseInt(friendFtsIdStr);
+            if(isNaN(friendFtsId)) {
+                alert("非法的Fts号码:" + friendFtsIdStr);
+                return;
+            }
+            var requestDTO = {'type': 'ADD_FRIEND', 'data': friendFtsId};
+            webSocket.send(JSON.stringify(requestDTO));
         });
     } else {
         alert('Not support websocket')

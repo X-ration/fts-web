@@ -86,4 +86,7 @@ public interface UserMapper {
     })
     UserExtend queryUserExtendByUserId(long userId);
 
+    @Select("SELECT nickname FROM user WHERE fts_id=#{userFtsId}")
+    String queryNicknameByFtsId(long userFtsId);
+
 }

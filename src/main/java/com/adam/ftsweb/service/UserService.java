@@ -4,8 +4,11 @@ import com.adam.ftsweb.common.UserTokenMapItem;
 import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.constant.SystemConstant;
+import com.adam.ftsweb.constant.WebSocketConstant;
 import com.adam.ftsweb.dto.RegisterForm;
+import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.UserMapper;
+import com.adam.ftsweb.po.FriendRelationship;
 import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.po.UserExtend;
 import com.adam.ftsweb.util.Response;
@@ -27,6 +30,7 @@ import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -36,6 +40,8 @@ public class UserService {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private FriendRelationshipMapper friendRelationshipMapper;
     private final BiMap<String, UserTokenMapItem> userTokenToFtsIdMap = Maps.synchronizedBiMap(HashBiMap.create());
 
     public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
@@ -140,6 +146,47 @@ public class UserService {
                 log.debug("自动清理userTokenToFtsIdMap token={}", token);
             }}
         }
+    }
+
+    /**
+     * 为了后续查询的方便，双向添加好友关系
+     * @param ftsId
+     * @param anotherFtsId
+     * @return
+     */
+    @Transactional
+    public Response<?> addFriend(Long ftsId, Long anotherFtsId) {
+        Assert.notNull(ftsId, "addFriend ftsId null");
+        Assert.notNull(anotherFtsId, "addFriend anotherFtsId null");
+        if(ftsId.equals(anotherFtsId)) {
+            return Response.fail(WebSocketConstant.ADD_FRIEND_WITH_SELF);
+        }
+        int count = userMapper.queryUserCountByFtsId(ftsId);
+        if(count == 0) {
+            return Response.fail(WebSocketConstant.ADD_FRIEND_USER_NOT_EXISTS);
+        }
+        count = userMapper.queryUserCountByFtsId(anotherFtsId);
+        if(count == 0) {
+            return Response.fail(WebSocketConstant.ADD_FRIEND_USER_NOT_EXISTS);
+        }
+        count = friendRelationshipMapper.queryFriendRelationshipCount(ftsId, anotherFtsId, FriendRelationship.FriendRelationshipAddType.web);
+        if(count > 0) {
+            return Response.fail(WebSocketConstant.ADD_FRIEND_ALREADY_ADDED);
+        }
+        FriendRelationship friendRelationship = new FriendRelationship();
+        friendRelationship.setUserFtsId(ftsId);
+        friendRelationship.setAnotherUserFtsId(anotherFtsId);
+        friendRelationship.setAddType(FriendRelationship.FriendRelationshipAddType.web);
+        friendRelationshipMapper.insertFriendRelationship(friendRelationship);
+        //双向添加好友关系
+        friendRelationship.setUserFtsId(anotherFtsId);
+        friendRelationship.setAnotherUserFtsId(ftsId);
+        friendRelationshipMapper.insertFriendRelationship(friendRelationship);
+        Map<String,Object> resultMap = new HashMap<>();
+        resultMap.put("nickname", userMapper.queryNicknameByFtsId(anotherFtsId));
+        resultMap.put("userFtsId", anotherFtsId);
+        resultMap.put("helloMessage", WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
+        return Response.success(resultMap);
     }
 
     @Transactional

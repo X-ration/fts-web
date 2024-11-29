@@ -1,7 +1,9 @@
 package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.common.UserTokenMapItem;
+import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.UserMapper;
+import com.adam.ftsweb.po.FriendRelationship;
 import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
@@ -21,6 +23,8 @@ public class HelloController {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private FriendRelationshipMapper friendRelationshipMapper;
     @Autowired
     private UserService userService;
 
@@ -70,6 +74,17 @@ public class HelloController {
     public Response<?> helloMapper() {
         User user = userMapper.queryUserByFtsId(10000);
         return Response.success(user);
+    }
+
+    @RequestMapping("helloFriendRelationshipMapper")
+    @ResponseBody
+    public Response<?> helloFriendRelationshipMapper() {
+        FriendRelationship friendRelationship = new FriendRelationship();
+        friendRelationship.setUserFtsId(1);
+        friendRelationship.setAnotherUserFtsId(2);
+        friendRelationship.setAddType(FriendRelationship.FriendRelationshipAddType.web);
+        friendRelationshipMapper.insertFriendRelationship(friendRelationship);
+        return Response.success(friendRelationship);
     }
 
     @RequestMapping("helloToken")
