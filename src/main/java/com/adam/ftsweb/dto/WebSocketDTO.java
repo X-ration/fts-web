@@ -25,7 +25,11 @@ public class WebSocketDTO {
         /**
          * 添加好友的响应数据包类型
          */
-        ADD_FRIEND_RESULT
+        ADD_FRIEND_RESULT,
+        /**
+         * 初始化消息列表
+         */
+        INITIAL_MESSAGE_LIST,
         ;
     }
 

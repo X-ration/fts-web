@@ -45,6 +45,20 @@ public class WebSocketController {
         Assert.notNull(ftsId, "ws connection invalid token");
         log.info("ws connection open token={} ftsId={} sessionId={}", token, ftsId, session.getId());
         sessionMap.put(ftsId, session);
+        initializeMessageList(ftsId, session);
+    }
+
+    private void initializeMessageList(long ftsId, Session session) {
+        WebSocketDTO webSocketDTO = new WebSocketDTO();
+        webSocketDTO.setType(WebSocketDTO.WebSocketDTOType.INITIAL_MESSAGE_LIST);
+        List<WebSocketMessage> messageList = userService.queryMessageListByFtsId(ftsId);
+        webSocketDTO.setData(messageList);
+        try {
+            String json = objectMapper.writeValueAsString(webSocketDTO);
+            session.getAsyncRemote().sendText(json);
+        } catch (JsonProcessingException e) {
+            log.error("initializeMessageList writeValueAsString error", e);
+        }
     }
 
     @OnClose

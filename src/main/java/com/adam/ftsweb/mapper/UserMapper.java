@@ -4,6 +4,10 @@ import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.po.UserExtend;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public interface UserMapper {
 
     @Select("SELECT max_fts_id FROM user_fts_id LIMIT 1")
@@ -88,5 +92,15 @@ public interface UserMapper {
 
     @Select("SELECT nickname FROM user WHERE fts_id=#{userFtsId}")
     String queryNicknameByFtsId(long userFtsId);
+
+    @Select({
+            "<script>",
+            "SELECT fts_id,nickname FROM user WHERE fts_id IN ",
+            "<foreach collection=\"userFtsIds\" item=\"item\" separator=\",\" open=\"(\" close=\")\">",
+            "#{item}",
+            "</foreach>",
+            "</script>"
+    })
+    List<Map<String, Object>> queryNicknamesByFtsIds(@Param("userFtsIds") Set<Long> userFtsIds);
 
 }

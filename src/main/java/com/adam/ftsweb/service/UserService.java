@@ -6,6 +6,7 @@ import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.constant.SystemConstant;
 import com.adam.ftsweb.constant.WebSocketConstant;
 import com.adam.ftsweb.dto.RegisterForm;
+import com.adam.ftsweb.dto.WebSocketMessage;
 import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.MessageMapper;
 import com.adam.ftsweb.mapper.UserMapper;
@@ -32,9 +33,7 @@ import javax.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -206,8 +205,34 @@ public class UserService {
         return Response.success(resultMap);
     }
 
-    public String queryNicknameByFtsId(long ftsId) {
-        return userMapper.queryNicknameByFtsId(ftsId);
+    public List<WebSocketMessage> queryMessageListByFtsId(long ftsId) {
+        List<Message> messageList = messageMapper.queryMessageListByFtsId(ftsId);
+        Set<Long> userFtsIds = new HashSet<>();
+        messageList.forEach(message -> userFtsIds.add(message.getFromFtsId()));
+        List<Map<String,Object>> nicknameResultList = userMapper.queryNicknamesByFtsIds(userFtsIds);
+        Map<Long, String> nicknameMap = new HashMap<>();
+        nicknameResultList.forEach(stringObjectMap -> nicknameMap.put((long)stringObjectMap.get("fts_id"),
+                (String)stringObjectMap.get("nickname")));
+        List<WebSocketMessage> webSocketMessageList = new LinkedList<>();
+        messageList.forEach(message -> {
+            WebSocketMessage webSocketMessage = new WebSocketMessage();
+            webSocketMessage.setType(message.getMessageType());
+            webSocketMessage.setText(message.getText());
+            webSocketMessage.setFromFtsId(message.getFromFtsId());
+            webSocketMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));
+            webSocketMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
+            webSocketMessageList.add(webSocketMessage);
+        });
+        Set<Long> fromUserFtsIds = new HashSet<>();
+        for(Iterator<WebSocketMessage> iterator = webSocketMessageList.iterator(); iterator.hasNext(); ) {
+            WebSocketMessage webSocketMessage = iterator.next();
+            if(fromUserFtsIds.contains(webSocketMessage.getFromFtsId())) {
+                iterator.remove();
+            } else {
+                fromUserFtsIds.add(webSocketMessage.getFromFtsId());
+            }
+        }
+        return webSocketMessageList;
     }
 
     @Transactional

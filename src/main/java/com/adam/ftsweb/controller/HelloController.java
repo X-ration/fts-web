@@ -1,6 +1,7 @@
 package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.common.UserTokenMapItem;
+import com.adam.ftsweb.dto.WebSocketMessage;
 import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.FriendRelationship;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Controller
 @RequestMapping("/")
@@ -92,6 +94,13 @@ public class HelloController {
     public Response<?> helloToken(@RequestParam String token) {
         UserTokenMapItem item = userService.getUserTokenMapItem(token);
         return Response.success(item);
+    }
+
+    @RequestMapping("helloInitialMessageList")
+    @ResponseBody
+    public Response<?> helloInitialMessageList() {
+        List<WebSocketMessage> webSocketMessageList = userService.queryMessageListByFtsId(10000);
+        return Response.success(webSocketMessageList);
     }
 
 }
