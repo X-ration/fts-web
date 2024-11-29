@@ -62,27 +62,7 @@ public class WebSocketController {
         WebSocketResponseDTO responseDTO = new WebSocketResponseDTO();
         switch (requestDTO.getType()) {
             case ADD_FRIEND:
-                responseDTO.setType(WebSocketDTO.WebSocketDTOType.ADD_FRIEND_RESULT);
-                Object data = requestDTO.getData();
-                long anotherFtsId;
-                if(data == null) {
-                    responseDTO.setSuccess(false);
-                    responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
-                } else {
-                    try {
-                        anotherFtsId = Long.parseLong(data.toString());
-                        Response<?> addFriendResponse = userService.addFriend(ftsId, anotherFtsId);
-                        responseDTO.setSuccess(addFriendResponse.isSuccess());
-                        if(!addFriendResponse.isSuccess()) {
-                            responseDTO.setMessage(addFriendResponse.getMessage());
-                        } else {
-                            responseDTO.setData(addFriendResponse.getData());
-                        }
-                    } catch (NumberFormatException e) {
-                        responseDTO.setSuccess(false);
-                        responseDTO.setMessage(WebSocketConstant.FTS_ID_NOT_A_NUMBER);
-                    }
-                }
+                addFriend(responseDTO, requestDTO, ftsId);
                 break;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
@@ -92,6 +72,45 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(responseJson);
         } catch (JsonProcessingException e) {
             log.error("ObjectMapper write responseJson error,dto={}", responseDTO, e);
+        }
+    }
+
+    private void addFriend(WebSocketResponseDTO responseDTO, WebSocketDTO requestDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.ADD_FRIEND_RESULT);
+        Object data = requestDTO.getData();
+        long anotherFtsId;
+        if(data == null) {
+            responseDTO.setSuccess(false);
+            responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
+        } else {
+            try {
+                anotherFtsId = Long.parseLong(data.toString());
+                Response<?> addFriendResponse = userService.addFriend(ftsId, anotherFtsId);
+                responseDTO.setSuccess(addFriendResponse.isSuccess());
+                if(!addFriendResponse.isSuccess()) {
+                    responseDTO.setMessage(addFriendResponse.getMessage());
+                } else {
+                    responseDTO.setData(addFriendResponse.getData());
+                    WebSocketDTO pushMessageDTO  = new WebSocketDTO();
+                    pushMessageDTO.setType(WebSocketDTO.WebSocketDTOType.MESSAGE);
+                    Map<String,Object> pushMessageDataMap = new HashMap<>();
+                    pushMessageDataMap.put("message", WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
+                    pushMessageDataMap.put("fromFtsId", ftsId);
+                    pushMessageDTO.setData(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
+                    Session pushSession = sessionMap.get(anotherFtsId);
+                    if(pushSession != null && pushSession.isOpen()) {
+                        try {
+                            String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
+                            pushSession.getAsyncRemote().sendText(pushJson);
+                        } catch (JsonProcessingException e) {
+                            log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                        }
+                    }
+                }
+            } catch (NumberFormatException e) {
+                responseDTO.setSuccess(false);
+                responseDTO.setMessage(WebSocketConstant.FTS_ID_NOT_A_NUMBER);
+            }
         }
     }
 

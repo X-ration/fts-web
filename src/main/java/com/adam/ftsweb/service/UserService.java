@@ -7,8 +7,10 @@ import com.adam.ftsweb.constant.SystemConstant;
 import com.adam.ftsweb.constant.WebSocketConstant;
 import com.adam.ftsweb.dto.RegisterForm;
 import com.adam.ftsweb.mapper.FriendRelationshipMapper;
+import com.adam.ftsweb.mapper.MessageMapper;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.FriendRelationship;
+import com.adam.ftsweb.po.Message;
 import com.adam.ftsweb.po.User;
 import com.adam.ftsweb.po.UserExtend;
 import com.adam.ftsweb.util.Response;
@@ -42,6 +44,8 @@ public class UserService {
     private UserMapper userMapper;
     @Autowired
     private FriendRelationshipMapper friendRelationshipMapper;
+    @Autowired
+    private MessageMapper messageMapper;
     private final BiMap<String, UserTokenMapItem> userTokenToFtsIdMap = Maps.synchronizedBiMap(HashBiMap.create());
 
     public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
@@ -182,6 +186,17 @@ public class UserService {
         friendRelationship.setUserFtsId(anotherFtsId);
         friendRelationship.setAnotherUserFtsId(ftsId);
         friendRelationshipMapper.insertFriendRelationship(friendRelationship);
+
+        //双向发送打招呼消息
+        Message helloMessage = new Message();
+        helloMessage.setFromFtsId(ftsId);
+        helloMessage.setToFtsId(anotherFtsId);
+        helloMessage.setText(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
+        helloMessage.setMessageType(Message.MessageType.text);
+        messageMapper.insertMessage(helloMessage);
+        helloMessage.setFromFtsId(anotherFtsId);
+        helloMessage.setToFtsId(ftsId);
+        messageMapper.insertMessage(helloMessage);
         Map<String,Object> resultMap = new HashMap<>();
         resultMap.put("nickname", userMapper.queryNicknameByFtsId(anotherFtsId));
         resultMap.put("userFtsId", anotherFtsId);
