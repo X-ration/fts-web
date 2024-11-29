@@ -198,10 +198,16 @@ public class UserService {
         helloMessage.setToFtsId(ftsId);
         messageMapper.insertMessage(helloMessage);
         Map<String,Object> resultMap = new HashMap<>();
-        resultMap.put("nickname", userMapper.queryNicknameByFtsId(anotherFtsId));
-        resultMap.put("userFtsId", anotherFtsId);
+        resultMap.put("anotherNickname", userMapper.queryNicknameByFtsId(anotherFtsId));
+        resultMap.put("anotherFtsId", anotherFtsId);
+        resultMap.put("ftsId", ftsId);
+        resultMap.put("nickname", userMapper.queryNicknameByFtsId(ftsId));
         resultMap.put("helloMessage", WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
         return Response.success(resultMap);
+    }
+
+    public String queryNicknameByFtsId(long ftsId) {
+        return userMapper.queryNicknameByFtsId(ftsId);
     }
 
     @Transactional

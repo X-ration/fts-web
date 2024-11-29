@@ -1,8 +1,11 @@
 package com.adam.ftsweb.controller;
 
+import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.WebSocketConstant;
 import com.adam.ftsweb.dto.WebSocketDTO;
+import com.adam.ftsweb.dto.WebSocketMessage;
 import com.adam.ftsweb.dto.WebSocketResponseDTO;
+import com.adam.ftsweb.po.Message;
 import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,6 +20,7 @@ import org.springframework.util.Assert;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
@@ -90,13 +94,21 @@ public class WebSocketController {
                 if(!addFriendResponse.isSuccess()) {
                     responseDTO.setMessage(addFriendResponse.getMessage());
                 } else {
-                    responseDTO.setData(addFriendResponse.getData());
+                    Map<String,  Object> responseDataMap = new HashMap<>();
+                    Map<String, Object> addFriendResponseDataMap = (Map<String, Object>) addFriendResponse.getData();
+                    responseDataMap.put("nickname", addFriendResponseDataMap.get("anotherNickname"));
+                    responseDataMap.put("userFtsId", addFriendResponseDataMap.get("anotherFtsId"));
+                    responseDataMap.put("helloMessage", addFriendResponseDataMap.get("helloMessage"));
+                    responseDTO.setData(responseDataMap);
                     WebSocketDTO pushMessageDTO  = new WebSocketDTO();
                     pushMessageDTO.setType(WebSocketDTO.WebSocketDTOType.MESSAGE);
-                    Map<String,Object> pushMessageDataMap = new HashMap<>();
-                    pushMessageDataMap.put("message", WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
-                    pushMessageDataMap.put("fromFtsId", ftsId);
-                    pushMessageDTO.setData(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
+                    WebSocketMessage pushMessageData = new WebSocketMessage();
+                    pushMessageData.setText(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
+                    pushMessageData.setType(Message.MessageType.text);
+                    pushMessageData.setFromFtsId((long)addFriendResponseDataMap.get("ftsId"));
+                    pushMessageData.setFromNickname((String) addFriendResponseDataMap.get("nickname"));
+                    pushMessageData.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
+                    pushMessageDTO.setData(pushMessageData);
                     Session pushSession = sessionMap.get(anotherFtsId);
                     if(pushSession != null && pushSession.isOpen()) {
                         try {

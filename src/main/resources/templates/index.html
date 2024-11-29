@@ -191,6 +191,7 @@ charset=UTF-8"/>
         webSocket.onmessage = function(event) {
             console.log('接收到消息:' + event.data);
             var responseDTO = JSON.parse(event.data);
+            var friendListContainer = $('#friendListContainer');
             switch (responseDTO.type) {
                 case 'ADD_FRIEND_RESULT':
                     var status = responseDTO.success;
@@ -203,9 +204,32 @@ charset=UTF-8"/>
                         addedFriendDiv.find("h4:first strong:first").html(responseDTO.data.nickname);
                         addedFriendDiv.children("span:first").html(responseDTO.data.userFtsId);
                         addedFriendDiv.children("p:first").html(responseDTO.data.helloMessage);
-                        $('#friendListContainer').prepend(addedFriendDiv);
+                        friendListContainer.prepend(addedFriendDiv);
                     } else {
                         alert("添加失败:" + responseDTO.message);
+                    }
+                    break;
+                case 'MESSAGE':
+                    var message = responseDTO.data;  //text,type,fromFtsId,fromNickname,createTime
+                    var friendList = friendListContainer.children();
+                    var foundFriend = false;
+                    for(var i=0;i<friendList.length;i++) {
+                        var friendDiv = $(friendList[i]);
+                        var friendFtsIdStr = friendDiv.children("span:first").html();
+                        if(parseInt(friendFtsIdStr) === message.fromFtsId) {
+                            foundFriend = true;
+                            friendDiv.children("p:first").html(message.text);
+                            //todo active user修改mainContent内容
+                            break;
+                        }
+                    }
+                    if(!foundFriend) {
+                        var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
+                        addedFriendDiv.removeClass('d-none');
+                        addedFriendDiv.find("h4:first strong:first").html(message.fromNickname);
+                        addedFriendDiv.children("span:first").html(message.fromFtsId);
+                        addedFriendDiv.children("p:first").html(message.text);
+                        friendListContainer.prepend(addedFriendDiv);
                     }
                     break;
             }
