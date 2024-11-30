@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -207,6 +208,9 @@ public class UserService {
 
     public List<WebSocketMessage> queryMessageListByFtsId(long ftsId) {
         List<Message> messageList = messageMapper.queryMessageListByFtsId(ftsId);
+        if(CollectionUtils.isEmpty(messageList)) {
+            return new ArrayList<>();
+        }
         Set<Long> userFtsIds = new HashSet<>();
         messageList.forEach(message -> userFtsIds.add(message.getFromFtsId()));
         List<Map<String,Object>> nicknameResultList = userMapper.queryNicknamesByFtsIds(userFtsIds);

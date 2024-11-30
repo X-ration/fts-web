@@ -25,7 +25,7 @@ charset=UTF-8"/>
                 <button type="button" class="btn btn-outline-primary btn-block" data-toggle="modal" data-target="#addFriendModal">添加好友</button>
                 <div class="bd-toc-item" id="friendListContainer">
                     <div onclick="alert('hello')" style="cursor: pointer;" class="d-none bd-toc-link">
-                        <h4><strong>用户名</strong></h4>
+                        <h5><strong>用户名</strong></h5>
                         <span class="d-none">ftsId</span>
                         <p>消息内容</p>
                     </div>
@@ -191,49 +191,56 @@ charset=UTF-8"/>
         webSocket.onmessage = function(event) {
             console.log('接收到消息:' + event.data);
             var responseDTO = JSON.parse(event.data);
-            var friendListContainer = $('#friendListContainer');
             switch (responseDTO.type) {
                 case 'ADD_FRIEND_RESULT':
-                    var status = responseDTO.success;
-                    if(status) {
-                        alert("添加成功");
-                        $('#addFriendModal').modal('hide');
-                        $('#addFriendFtsId').val('');
-                        var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
-                        addedFriendDiv.removeClass('d-none');
-                        addedFriendDiv.find("h4:first strong:first").html(responseDTO.data.nickname);
-                        addedFriendDiv.children("span:first").html(responseDTO.data.userFtsId);
-                        addedFriendDiv.children("p:first").html(responseDTO.data.helloMessage);
-                        friendListContainer.prepend(addedFriendDiv);
-                    } else {
-                        alert("添加失败:" + responseDTO.message);
-                    }
+                    addFriendResult(responseDTO);
                     break;
                 case 'MESSAGE':
-                    var message = responseDTO.data;  //text,type,fromFtsId,fromNickname,createTime
-                    var friendList = friendListContainer.children();
-                    var foundFriend = false;
-                    for(var i=0;i<friendList.length;i++) {
-                        var friendDiv = $(friendList[i]);
-                        var friendFtsIdStr = friendDiv.children("span:first").html();
-                        if(parseInt(friendFtsIdStr) === message.fromFtsId) {
-                            foundFriend = true;
-                            friendDiv.children("p:first").html(message.text);
-                            //todo active user修改mainContent内容
-                            break;
-                        }
-                    }
-                    if(!foundFriend) {
-                        var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
-                        addedFriendDiv.removeClass('d-none');
-                        addedFriendDiv.find("h4:first strong:first").html(message.fromNickname);
-                        addedFriendDiv.children("span:first").html(message.fromFtsId);
-                        addedFriendDiv.children("p:first").html(message.text);
-                        friendListContainer.prepend(addedFriendDiv);
-                    }
+                    message(responseDTO);
                     break;
             }
         };/*]]>*/
+        function addFriendResult(responseDTO) {
+            var status = responseDTO.success;
+            if(status) {
+                var friendListContainer = $('#friendListContainer');
+                alert("添加成功");
+                $('#addFriendModal').modal('hide');
+                $('#addFriendFtsId').val('');
+                var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
+                addedFriendDiv.removeClass('d-none');
+                addedFriendDiv.find("h5:first strong:first").html(responseDTO.data.nickname);
+                addedFriendDiv.children("span:first").html(responseDTO.data.userFtsId);
+                addedFriendDiv.children("p:first").html(responseDTO.data.helloMessage);
+                friendListContainer.prepend(addedFriendDiv);
+            } else {
+                alert("添加失败:" + responseDTO.message);
+            }
+        }
+        function message(responseDTO) {
+            var message = responseDTO.data;  //text,type,fromFtsId,fromNickname,createTime
+            var friendListContainer = $('#friendListContainer');
+            var friendList = friendListContainer.children();
+            var foundFriend = false;
+            for(var i=0;i<friendList.length;i++) {
+                var friendDiv = $(friendList[i]);
+                var friendFtsIdStr = friendDiv.children("span:first").html();
+                if(parseInt(friendFtsIdStr) === message.fromFtsId) {
+                    foundFriend = true;
+                    friendDiv.children("p:first").html(message.text);
+                    //todo active user修改mainContent内容
+                    break;
+                }
+            }
+            if(!foundFriend) {
+                var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
+                addedFriendDiv.removeClass('d-none');
+                addedFriendDiv.find("h5:first strong:first").html(message.fromNickname);
+                addedFriendDiv.children("span:first").html(message.fromFtsId);
+                addedFriendDiv.children("p:first").html(message.text);
+                friendListContainer.prepend(addedFriendDiv);
+            }
+        }
         window.onbeforeunload = function (){
             webSocket.close();
         };
