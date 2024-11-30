@@ -51,7 +51,7 @@ charset=UTF-8"/>
             Right Sidebar
         </div>
         <main id="mainContainer" class="col-12 col-md-9 col-xl-7 py-md-3 pl-md-5 bd-content" role="main">
-            <div class="d-flex flex-column">
+            <div>
                 <div class="row" style="position: relative">
                     <h4 id="activeUserMessageTitle">请选择一个用户</h4>
                     <span class="d-none" id="activeUserFtsId">选中用户的Fts号码</span>
@@ -62,8 +62,8 @@ charset=UTF-8"/>
                     </div>
                 </div>
                 <hr>
-                <button class="btn btn-outline-primary btn-block mb-1" id="clearAllMessages">清理信息</button>
-                <div id="messageList" class="row d-flex flex-column">
+                <button type="button" class="btn btn-outline-primary btn-block" id="clearAllMessages">清理信息</button>
+                <div id="messageList">
                     <div id="leftMessageTemplate" class="d-none row justify-content-start">
                         <div class="card rounded border border-primary" style="width: 18rem;">
                             <div class="card-body">
@@ -262,6 +262,7 @@ charset=UTF-8"/>
             }
             messageDiv.removeAttr("id");
             messageDiv.removeClass("d-none");
+            messageDiv.addClass("d-flex");
             messageDiv.find("span:first").html(message.fromFtsId);
             $('#messageList').append(messageDiv);
         }
@@ -391,6 +392,7 @@ charset=UTF-8"/>
                     messageDiv.find("p:first").html(messageText);
                     messageDiv.removeAttr("id");
                     messageDiv.removeClass("d-none");
+                    messageDiv.addClass("d-flex");
                     messageDiv.find("span:first").html(myUserFtsId);
                     $('#messageList').append(messageDiv);
                     var friendListContainer = $('#friendListContainer');
