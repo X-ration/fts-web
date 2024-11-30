@@ -16,7 +16,7 @@
     <button type="button" onclick="addToast()" class="btn btn-primary btn-lg btn-block">Block level button</button>
     <!-- Position it -->
     <div id="toastContainer" style="position: absolute; bottom: 0; right: 0;">
-        <div id="toast1" class="toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="toast1" class="d-none toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <!--                <img src="..." class="rounded mr-2" alt="...">-->
                 <strong class="mr-auto">Bootstrap</strong>
@@ -41,7 +41,7 @@
     function addToast() {
         var newToast = $('#toast1').clone();
         var container = $('#toastContainer');
-        newToast.removeClass("fade","hide");
+        newToast.removeClass("d-none","fade","hide");
         // newToast.removeClass("hide");
         var children = container.children();
         var lastId = children[children.length-1].getAttribute('id');

@@ -116,6 +116,7 @@ public class WebSocketController {
                 if(!sendMessageResponse.isSuccess()) {
                     responseDTO.setMessage(sendMessageResponse.getMessage());
                 } else {
+                    String fromNickname = (String) sendMessageResponse.getData();
                     //push message
                     WebSocketDTO pushMessageDTO  = new WebSocketDTO();
                     pushMessageDTO.setType(WebSocketDTO.WebSocketDTOType.MESSAGE);
@@ -125,6 +126,7 @@ public class WebSocketController {
                     mainMessage.setFromFtsId(ftsId);
                     mainMessage.setToFtsId(toFtsId);
                     mainMessage.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
+                    mainMessage.setFromNickname(fromNickname);
                     pushMessageDTO.setData(mainMessage);
                     Session pushSession = sessionMap.get(toFtsId);
                     if(pushSession != null && pushSession.isOpen()) {

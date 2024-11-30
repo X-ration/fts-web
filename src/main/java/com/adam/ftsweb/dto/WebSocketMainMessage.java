@@ -12,6 +12,7 @@ public class WebSocketMainMessage {
     private String text;
     private Message.MessageType type;
     private long fromFtsId;
+    private String fromNickname;
     private long toFtsId;
     private String fileUrl;
     /**

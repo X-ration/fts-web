@@ -8,7 +8,23 @@ charset=UTF-8"/>
     <title>Fts-web文件互传系统</title>
 </head>
 <body>
-<div id="rootContainer" class="container-fluid" layout:fragment="content">
+<div id="rootContainer" style="position: relative" class="container-fluid" layout:fragment="content">
+    <!-- Position it -->
+    <div id="toastContainer" style="position: absolute; bottom: 0; right: 0;">
+        <div id="toast1" style="position: relative; z-index: 1000" class="d-none toast fade hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <!--                <img src="..." class="rounded mr-2" alt="...">-->
+                <strong class="mr-auto">Bootstrap</strong>
+                <small>11 mins ago</small>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="toast-body">
+                Hello, world! This is a toast message.
+            </div>
+        </div>
+    </div>
     <div class="row flex-xl-nowrap ml-2 mr-2">
         <div class="col-12 col-md-3 col-xl-2 bd-sidebar">
             <form class="bd-search d-flex align-items-center">
@@ -290,7 +306,6 @@ charset=UTF-8"/>
             var friendListContainer = $('#friendListContainer');
             var friendList = friendListContainer.children();
             var foundFriend = false;
-            //todo add toast
             for(var i=0;i<friendList.length;i++) {
                 var friendDiv = $(friendList[i]);
                 var friendFtsIdStr = friendDiv.children("span:first").html();
@@ -314,6 +329,28 @@ charset=UTF-8"/>
                 addedFriendDiv.children("p:first").html(message.text);
                 friendListContainer.prepend(addedFriendDiv);
             }
+            //add toast
+            var newToast = $('#toast1').clone();
+            var container = $('#toastContainer');
+            newToast.removeClass("d-none","fade","hide");
+            var children = container.children();
+            var lastId = children[children.length-1].getAttribute('id');
+            var newId = 'toast'+(parseInt(lastId.substring(5))+1);
+            newToast.attr('id', newId);
+            var childDivs = $('#toastContainer>div');
+            for(var i=1;i<childDivs.length;i++) {
+                var childDiv = childDivs[i];
+                if(childDiv.getAttribute('class').includes('hide')) {
+                    childDiv.remove();
+                }
+            }
+            console.log(message.fromNickname);
+            newToast.find("strong:first").html(message.fromNickname);
+            newToast.find("small:first").html(message.createTime);
+            newToast.children(".toast-body").eq(0).html(message.text);
+            container.append(newToast);
+            newToast.toast({autohide: false});
+            newToast.toast('show');
         }
         function initialMessageList(responseDTO) {
             var messageList = responseDTO.data;

@@ -234,7 +234,8 @@ public class UserService {
             message.setFileUrl(fileUrl);
         }
         messageMapper.insertMessage(message);
-        return Response.success();
+        String nickname = userMapper.queryNicknameByFtsId(fromFtsId);
+        return Response.success(nickname);
     }
 
     /**
@@ -255,6 +256,9 @@ public class UserService {
         if(CollectionUtils.isEmpty(messageList)) {
             return new ArrayList<>();
         }
+        Set<Long> ftsIds = new HashSet<>();
+        messageList.forEach(message -> ftsIds.add(message.getFromFtsId()));
+        Map<Long,String> nicknameMap = queryFtsIdToNicknameMap(ftsIds);
         messageList.sort(Comparator.comparing(Message::getCreateTime));
         List<WebSocketMainMessage> mainMessageList = messageList.stream().map(message -> {
             WebSocketMainMessage mainMessage = new WebSocketMainMessage();
@@ -264,9 +268,18 @@ public class UserService {
             mainMessage.setFromFtsId(message.getFromFtsId());
             mainMessage.setFileUrl(message.getFileUrl());
             mainMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
+            mainMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));
             return mainMessage;
         }).collect(Collectors.toList());
         return mainMessageList;
+    }
+
+    private Map<Long,String> queryFtsIdToNicknameMap(Set<Long> ftsIds) {
+        List<Map<String,Object>> nicknameResultList = userMapper.queryNicknamesByFtsIds(ftsIds);
+        Map<Long, String> nicknameMap = new HashMap<>();
+        nicknameResultList.forEach(stringObjectMap -> nicknameMap.put((long)stringObjectMap.get("fts_id"),
+                (String)stringObjectMap.get("nickname")));
+        return nicknameMap;
     }
 
     /**
@@ -281,10 +294,7 @@ public class UserService {
         }
         Set<Long> userFtsIds = new HashSet<>();
         messageList.forEach(message -> userFtsIds.add(message.getFromFtsId()));
-        List<Map<String,Object>> nicknameResultList = userMapper.queryNicknamesByFtsIds(userFtsIds);
-        Map<Long, String> nicknameMap = new HashMap<>();
-        nicknameResultList.forEach(stringObjectMap -> nicknameMap.put((long)stringObjectMap.get("fts_id"),
-                (String)stringObjectMap.get("nickname")));
+        Map<Long,String> nicknameMap = queryFtsIdToNicknameMap(userFtsIds);
         List<WebSocketLeftMessage> webSocketLeftMessageList = new LinkedList<>();
         messageList.forEach(message -> {
             WebSocketLeftMessage webSocketLeftMessage = new WebSocketLeftMessage();
