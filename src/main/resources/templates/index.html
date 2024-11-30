@@ -69,6 +69,9 @@ charset=UTF-8"/>
                             <div class="card-body">
                                 <span class="d-none">fromFtsId</span>
                                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                <blockquote class="blockquote mb-0">
+                                    <footer class="blockquote-footer">createTime</footer>
+                                </blockquote>
                             </div>
                         </div>
                     </div>
@@ -77,6 +80,9 @@ charset=UTF-8"/>
                             <div class="card-body">
                                 <span class="d-none">fromFtsId</span>
                                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                <blockquote class="blockquote mb-0">
+                                    <footer class="blockquote-footer">createTime</footer>
+                                </blockquote>
                             </div>
                         </div>
                     </div>
@@ -87,6 +93,9 @@ charset=UTF-8"/>
                                 <h5 class="card-title">文件传输消息</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">1.image</h6>
                                 <a href="#">下载文件</a>
+                                <blockquote class="blockquote mb-0">
+                                    <footer class="blockquote-footer">createTime</footer>
+                                </blockquote>
                             </div>
                         </div>
                     </div>
@@ -97,6 +106,9 @@ charset=UTF-8"/>
                                 <h5 class="card-title">文件传输消息</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">1.image</h6>
                                 <a href="#">下载文件</a>
+                                <blockquote class="blockquote mb-0">
+                                    <footer class="blockquote-footer">createTime</footer>
+                                </blockquote>
                             </div>
                         </div>
                     </div>
@@ -266,6 +278,7 @@ charset=UTF-8"/>
             messageDiv.removeClass("d-none");
             messageDiv.addClass("d-flex");
             messageDiv.find("span:first").html(message.fromFtsId);
+            messageDiv.find("footer:first").html(message.createTime);
             $('#messageList').append(messageDiv);
         }
         function retrieveMessageList(responseDTO) {
@@ -396,6 +409,9 @@ charset=UTF-8"/>
                     messageDiv.removeClass("d-none");
                     messageDiv.addClass("d-flex");
                     messageDiv.find("span:first").html(myUserFtsId);
+                    const now = new Date();
+                    const nowStr = now.toLocaleString('zh-CN', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}).replaceAll('/','-');
+                    messageDiv.find("footer:first").html(nowStr);
                     $('#messageList').append(messageDiv);
                     var friendListContainer = $('#friendListContainer');
                     var friendList = friendListContainer.children();
