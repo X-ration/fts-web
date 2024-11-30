@@ -198,6 +198,9 @@ charset=UTF-8"/>
                 case 'MESSAGE':
                     message(responseDTO);
                     break;
+                case 'INITIAL_MESSAGE_LIST':
+                    initialMessageList(responseDTO);
+                    break;
             }
         };/*]]>*/
         function addFriendResult(responseDTO) {
@@ -239,6 +242,19 @@ charset=UTF-8"/>
                 addedFriendDiv.children("span:first").html(message.fromFtsId);
                 addedFriendDiv.children("p:first").html(message.text);
                 friendListContainer.prepend(addedFriendDiv);
+            }
+        }
+        function initialMessageList(responseDTO) {
+            var messageList = responseDTO.data;
+            for(var i=0;i<messageList.length;i++) {
+                var message = messageList[i]; //text,type,fromFtsId,fromNickname,createTime
+                var friendListContainer = $('#friendListContainer');
+                var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
+                addedFriendDiv.removeClass('d-none');
+                addedFriendDiv.find("h5:first strong:first").html(message.fromNickname);
+                addedFriendDiv.children("span:first").html(message.fromFtsId);
+                addedFriendDiv.children("p:first").html(message.text);
+                friendListContainer.append(addedFriendDiv);
             }
         }
         window.onbeforeunload = function (){
