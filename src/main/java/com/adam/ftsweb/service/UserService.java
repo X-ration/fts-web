@@ -230,6 +230,7 @@ public class UserService {
         List<WebSocketMainMessage> mainMessageList = messageList.stream().map(message -> {
             WebSocketMainMessage mainMessage = new WebSocketMainMessage();
             mainMessage.setText(message.getText());
+            mainMessage.setToFtsId(message.getToFtsId());
             mainMessage.setType(message.getMessageType());
             mainMessage.setFromFtsId(message.getFromFtsId());
             mainMessage.setFileUrl(message.getFileUrl());
@@ -259,6 +260,7 @@ public class UserService {
         messageList.forEach(message -> {
             WebSocketLeftMessage webSocketLeftMessage = new WebSocketLeftMessage();
             webSocketLeftMessage.setType(message.getMessageType());
+            webSocketLeftMessage.setToFtsId(message.getToFtsId());
             webSocketLeftMessage.setText(message.getText());
             webSocketLeftMessage.setFromFtsId(message.getFromFtsId());
             webSocketLeftMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));

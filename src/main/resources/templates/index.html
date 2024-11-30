@@ -37,8 +37,8 @@ charset=UTF-8"/>
         <main id="mainContainer" class="col-12 col-md-9 col-xl-7 py-md-3 pl-md-5 bd-content" role="main">
             <div class="d-flex flex-column">
                 <div class="row" style="position: relative">
-                    <h4 id="activeUserMessageTitle">与用户1对话中</h4>
-                    <span class="d-none" id="activeUserFtsId">用户1的Fts号码</span>
+                    <h4 id="activeUserMessageTitle">请选择一个用户</h4>
+                    <span class="d-none" id="activeUserFtsId">选中用户的Fts号码</span>
                     <div class="d-flex justify-content-end" style="position: absolute; right: 0">
                         <button class="btn btn-outline-primary" type="button" id="showProfile" data-toggle="modal" data-target="#showProfileModal">查看资料</button>
                         <button class="btn btn-outline-primary" type="button" id="modifyProfile" data-toggle="modal" data-target="#modifyProfileModal">修改资料</button>
@@ -47,41 +47,39 @@ charset=UTF-8"/>
                 <hr>
                 <button class="btn btn-outline-primary btn-block mb-1" id="clearAllMessages">清理信息</button>
                 <div id="messageList" class="row d-flex flex-column">
-                    <div class="row justify-content-start">
-                        <div class="card rounded border border-success" style="width: 18rem;">
+                    <div id="leftMessageTemplate" class="d-none row justify-content-start">
+                        <div class="card rounded border border-primary" style="width: 18rem;">
                             <div class="card-body">
+                                <span class="d-none">fromFtsId</span>
                                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="row justify-content-start">
+                    <div id="rightMessageTemplate" class="d-none row justify-content-end">
                         <div class="card rounded border border-success" style="width: 18rem;">
                             <div class="card-body">
-                                <h5 class="card-title">文件传输请求</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">用户1正在向你传输文件1.image</h6>
-                                <button class="btn btn-outline-primary" type="button">接收文件</button>
-                                <button class="btn btn-outline-warning" type="button">拒绝接收</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row justify-content-end">
-                        <div class="card rounded border border-success" style="width: 18rem;">
-                            <div class="card-body">
+                                <span class="d-none">fromFtsId</span>
                                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="row justify-content-end">
-                        <div class="card rounded border border-success" style="width: 18rem;">
+                    <div id="leftFileTemplate" class="d-none row justify-content-start">
+                        <div class="card rounded border border-primary" style="width: 18rem;">
                             <div class="card-body">
-                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                <span class="d-none">fromFtsId</span>
+                                <h5 class="card-title">文件传输消息</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">1.image</h6>
+                                <a href="#">下载文件</a>
                             </div>
                         </div>
                     </div>
-                    <div class="row justify-content-end">
+                    <div id="rightFileTemplate" class="d-none row justify-content-end">
                         <div class="card rounded border border-success" style="width: 18rem;">
                             <div class="card-body">
-                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                <span class="d-none">fromFtsId</span>
+                                <h5 class="card-title">文件传输消息</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">1.image</h6>
+                                <a href="#">下载文件</a>
                             </div>
                         </div>
                     </div>
@@ -201,8 +199,66 @@ charset=UTF-8"/>
                 case 'INITIAL_MESSAGE_LIST':
                     initialMessageList(responseDTO);
                     break;
+                case 'RETRIEVE_MESSAGE_LIST_RESULT':
+                    retrieveMessageList(responseDTO);
+                    break;
             }
         };/*]]>*/
+        function clearActiveMessageList() {
+            var container = $('#messageList');
+            var children = container.children();
+            for(var i=0;i<children.length;i++) {
+                var childDiv = $(children[i]);
+                if(!childDiv.hasClass('d-none')) {
+                    childDiv.remove();
+                }
+            }
+        }
+        function retrieveOneMessageMain(message,activeUserFtsId) {
+            var messageDiv;
+            if(message.type === 'text') {
+                if (activeUserFtsId === message.fromFtsId) {
+                    messageDiv = $('#leftMessageTemplate').clone();
+                } else {
+                    messageDiv = $('#rightMessageTemplate').clone();
+                }
+                messageDiv.find("p:first").html(message.text);
+            } else if(message.type === 'file') {
+                if (activeUserFtsId === message.fromFtsId) {
+                    messageDiv = $('#leftFileTemplate').clone();
+                } else {
+                    messageDiv = $('#rightFileTemplate').clone();
+                }
+                message.find("h6:first").html(message.text);
+                message.find("a:first").attr("href", message.fileUrl);
+            } else {
+                alert("未知的消息类型：" + message.type);
+                return;
+            }
+            messageDiv.removeAttr("id");
+            messageDiv.removeClass("d-none");
+            messageDiv.find("span:first").html(message.fromFtsId);
+            $('#messageList').append(messageDiv);
+        }
+        function retrieveMessageList(responseDTO) {
+            var status = responseDTO.success;
+            if(status) {
+                var activeUserFtsIdStr = $('#activeUserFtsId').html();
+                var activeUserFtsId = parseInt(activeUserFtsIdStr);
+                if(!isNaN(activeUserFtsId)) {
+                    clearActiveMessageList();
+                    var messageList = responseDTO.data;
+                    for(var i=0;i<messageList.length;i++) {
+                        var message = messageList[i];
+                        retrieveOneMessageMain(message,activeUserFtsId);
+                    }
+                } else {
+                    alert("获取消息列表失败，请刷新页面");
+                }
+            } else {
+                alert("获取消息列表失败:" + responseDTO.message);
+            }
+        }
         function addFriendResult(responseDTO) {
             var status = responseDTO.success;
             if(status) {
@@ -225,13 +281,19 @@ charset=UTF-8"/>
             var friendListContainer = $('#friendListContainer');
             var friendList = friendListContainer.children();
             var foundFriend = false;
+            //todo add toast
             for(var i=0;i<friendList.length;i++) {
                 var friendDiv = $(friendList[i]);
                 var friendFtsIdStr = friendDiv.children("span:first").html();
                 if(parseInt(friendFtsIdStr) === message.fromFtsId) {
                     foundFriend = true;
                     friendDiv.children("p:first").html(message.text);
-                    //todo active user修改mainContent内容
+                    var activeUserFtsIdStr = $('#activeUserFtsId').html();
+                    var activeUserFtsId = parseInt(activeUserFtsIdStr);
+                    if(!isNaN(activeUserFtsId) &&
+                        (activeUserFtsId === message.fromFtsId || activeUserFtsId === message.toFtsId)) {
+                        retrieveOneMessageMain(message, activeUserFtsId);
+                    }
                     break;
                 }
             }

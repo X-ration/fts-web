@@ -143,6 +143,7 @@ public class WebSocketController {
                     pushMessageData.setType(Message.MessageType.text);
                     pushMessageData.setFromFtsId((long)addFriendResponseDataMap.get("ftsId"));
                     pushMessageData.setFromNickname((String) addFriendResponseDataMap.get("nickname"));
+                    pushMessageData.setToFtsId(ftsId);
                     pushMessageData.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
                     pushMessageDTO.setData(pushMessageData);
                     Session pushSession = sessionMap.get(anotherFtsId);

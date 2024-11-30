@@ -12,6 +12,7 @@ public class WebSocketMainMessage {
     private String text;
     private Message.MessageType type;
     private long fromFtsId;
+    private long toFtsId;
     private String fileUrl;
     /**
      * Jackson全局配置在这里不生效，需要手动转化格式
