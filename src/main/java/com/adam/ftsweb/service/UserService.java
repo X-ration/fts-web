@@ -239,7 +239,7 @@ public class UserService {
     }
 
     /**
-     * 用两个fts号码双向查询所有消息，按消息发送时间升序排序，过滤一条打招呼的消息
+     * 用两个fts号码双向查询所有消息，按消息发送时间升序排序
      * @param ftsId
      * @param anotherFtsId
      * @return
@@ -248,7 +248,6 @@ public class UserService {
         List<Message> messageList = messageMapper.queryMessageListByTwoFtsIds(ftsId, anotherFtsId),
                 anotherMessageList = messageMapper.queryMessageListByTwoFtsIds(anotherFtsId, ftsId);
         if(!CollectionUtils.isEmpty(messageList)) {
-            messageList.remove(messageList.size() - 1); //过滤第一条打招呼消息
             messageList.addAll(anotherMessageList);
         } else {
             messageList = anotherMessageList;
