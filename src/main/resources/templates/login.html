@@ -8,11 +8,11 @@ charset=UTF-8"/>
     <title>登录</title>
 </head>
 <body>
-<div class="container" layout:fragment="content">
+<div class="container-fluid" layout:fragment="content">
     <br><br><br>
     <h1 class="text-center">用户登录</h1>
     <br><br>
-    <div class="col-8 offset-2">
+    <div class="col-12 col-md-10 offset-md-1 col-xl-8 offset-xl-2">
         <div class="alert alert-warning" role="alert" th:if="${error}" th:text="${error}">
             A simple warning alert—check it out!
         </div>

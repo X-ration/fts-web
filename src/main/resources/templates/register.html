@@ -8,41 +8,41 @@ charset=UTF-8"/>
     <title>用户注册</title>
 </head>
 <body>
-<div class="container" layout:fragment="content">
+<div class="container-fluid" layout:fragment="content">
     <br><br><br>
     <h1 class="text-center">用户注册</h1>
     <br><br>
-    <div class="col-8 offset-2">
+    <div class="col-12 col-md-10 offset-md-1 col-xl-8 offset-xl-2">
         <div id="errorMsg" class="alert alert-warning" role="alert" th:if="${error}" th:text="${error}">
             A simple warning alert—check it out!
         </div>
         <form id="registerForm" th:object="${registerForm}" action="/user/register" method="post">
             <h4>基础信息</h4>
             <div class="form-row">
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <label for="ftsId">Fts号码</label>
                     <input type="text" readonly class="form-control" id="ftsId" value="自动生成">
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <label for="nickname">昵称</label>
                     <input type="text" class="form-control" id="nickname" th:field="*{nickname}" placeholder="可以包含表情符号">
                     <div class="invalid-feedback">昵称长度不能超过32个字符</div>
                 </div>
             </div>
             <div class="form-row">
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <label for="email">电子邮件地址</label>
                     <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="someone@example.com">
                     <div class="invalid-feedback">必须是合法的电子邮件地址</div>
                 </div>
             </div>
             <div class="form-row">
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <label for="password">密码</label>
                     <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="密码长度不超过32位">
                     <div class="invalid-feedback">密码长度不超过32位</div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <label for="verifyPassword">确认密码</label>
                     <input type="password" class="form-control" id="verifyPassword" th:field="*{verifyPassword}" placeholder="再输入一次密码">
                     <div class="invalid-feedback">两次输入的密码不一致</div>
@@ -51,7 +51,7 @@ charset=UTF-8"/>
             <br>
             <h4>扩展信息（选填）</h4>
             <div class="form-row">
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <label for="birthDate">出生日期</label>
                     <input type="text" readonly class="form-control" id="birthDate" th:field="*{birthDate}" placeholder="请选择日期">
                     <div class="invalid-feedback">请输入正确的日期</div>
