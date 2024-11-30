@@ -64,7 +64,7 @@ charset=UTF-8"/>
                 <hr>
                 <button type="button" class="btn btn-outline-primary btn-block" id="clearAllMessages">清理信息</button>
                 <div id="messageList">
-                    <div id="leftMessageTemplate" class="d-none row justify-content-start">
+                    <div id="leftMessageTemplate" class="ml-1 d-none row justify-content-start">
                         <div class="card rounded border border-primary" style="width: 18rem;">
                             <div class="card-body">
                                 <span class="d-none">fromFtsId</span>
@@ -72,7 +72,7 @@ charset=UTF-8"/>
                             </div>
                         </div>
                     </div>
-                    <div id="rightMessageTemplate" class="d-none row justify-content-end">
+                    <div id="rightMessageTemplate" class="mr-1 d-none row justify-content-end">
                         <div class="card rounded border border-success" style="width: 18rem;">
                             <div class="card-body">
                                 <span class="d-none">fromFtsId</span>
@@ -80,7 +80,7 @@ charset=UTF-8"/>
                             </div>
                         </div>
                     </div>
-                    <div id="leftFileTemplate" class="d-none row justify-content-start">
+                    <div id="leftFileTemplate" class="ml-1 d-none row justify-content-start">
                         <div class="card rounded border border-primary" style="width: 18rem;">
                             <div class="card-body">
                                 <span class="d-none">fromFtsId</span>
@@ -90,7 +90,7 @@ charset=UTF-8"/>
                             </div>
                         </div>
                     </div>
-                    <div id="rightFileTemplate" class="d-none row justify-content-end">
+                    <div id="rightFileTemplate" class="mr-1 d-none row justify-content-end">
                         <div class="card rounded border border-success" style="width: 18rem;">
                             <div class="card-body">
                                 <span class="d-none">fromFtsId</span>
@@ -189,6 +189,8 @@ charset=UTF-8"/>
             var width = Math.floor(parentWidth * 2 / 3);
             card.setAttribute('style', 'width: ' + width + 'px;');
         }
+        var height = Math.floor(windowHeight * 1 / 2);
+        messageList.attr('style','height:'+height+'px; overflow-y:auto; overflow-x:hidden');
     }
     if('WebSocket' in window) {
         var webSocket = new WebSocket([[@{/ws/}]] + [[${token}]]);
