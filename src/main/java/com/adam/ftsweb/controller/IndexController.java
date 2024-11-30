@@ -33,6 +33,7 @@ public class IndexController {
             if(ftsId != null) {
                 log.debug("indexPage ftsId={} token={}", ftsId, token);
                 model.addAttribute("token", token);
+                model.addAttribute("ftsId", ftsId);
                 return "index";
             }
         }

@@ -39,6 +39,7 @@ charset=UTF-8"/>
                 <div class="row" style="position: relative">
                     <h4 id="activeUserMessageTitle">请选择一个用户</h4>
                     <span class="d-none" id="activeUserFtsId">选中用户的Fts号码</span>
+                    <span class="d-none" id="myUserFtsId" th:text="${ftsId}">我的Fts号码</span>
                     <div class="d-flex justify-content-end" style="position: absolute; right: 0">
                         <button class="btn btn-outline-primary" type="button" id="showProfile" data-toggle="modal" data-target="#showProfileModal">查看资料</button>
                         <button class="btn btn-outline-primary" type="button" id="modifyProfile" data-toggle="modal" data-target="#modifyProfileModal">修改资料</button>
@@ -202,8 +203,16 @@ charset=UTF-8"/>
                 case 'RETRIEVE_MESSAGE_LIST_RESULT':
                     retrieveMessageList(responseDTO);
                     break;
+                case 'SEND_MESSAGE_TEXT_RESULT':
+                    sendMessageTextResult(responseDTO);
+                    break;
             }
         };/*]]>*/
+        function sendMessageTextResult(responseDTO) {
+            if(!responseDTO.success) {
+                alert("发送消息失败,请刷新重试");
+            }
+        }
         function clearActiveMessageList() {
             var container = $('#messageList');
             var children = container.children();
@@ -329,7 +338,39 @@ charset=UTF-8"/>
             }
             var messageText = $('#messageTextArea').val();
             if (messageText !== '') {
-                webSocket.send(messageText);
+                var activeUserFtsIdStr = $('#activeUserFtsId').html();
+                var activeUserFtsId = parseInt(activeUserFtsIdStr);
+                var myUserFtsIdStr = $('#myUserFtsId').html();
+                var myUserFtsId = parseInt(myUserFtsIdStr);
+                if(!isNaN(activeUserFtsId) && !isNaN(myUserFtsId)) {
+                    var requestDTO = {
+                        'type': 'SEND_MESSAGE_TEXT', 'data': {
+                            'toFtsId': activeUserFtsId, 'text': messageText
+                        }
+                    };
+                    webSocket.send(JSON.stringify(requestDTO));
+                    $('#messageTextArea').val('');
+                    var messageDiv = $('#rightMessageTemplate').clone();
+                    messageDiv.find("p:first").html(messageText);
+                    messageDiv.removeAttr("id");
+                    messageDiv.removeClass("d-none");
+                    messageDiv.find("span:first").html(myUserFtsId);
+                    $('#messageList').append(messageDiv);
+                    var friendListContainer = $('#friendListContainer');
+                    var friendList = friendListContainer.children();
+                    for(var i=0;i<friendList.length;i++) {
+                        var friendDiv = $(friendList[i]);
+                        var friendFtsIdStr = friendDiv.children("span:first").html();
+                        if(parseInt(friendFtsIdStr) === activeUserFtsId) {
+                            friendDiv.children("p:first").html(messageText);
+                            break;
+                        }
+                    }
+                } else if(isNaN(activeUserFtsId)) {
+                    alert("请选择用户");
+                } else {
+                    alert("页面错误，请刷新重试");
+                }
             }
         });
         $('#addFriendButton').bind('click', function () {
@@ -362,6 +403,7 @@ charset=UTF-8"/>
             } else {
                 alert("错误的Fts号码");
             }
+            $('#messageTextArea').html('');
         }
     } else {
         alert('Not support websocket')

@@ -169,11 +169,11 @@ public class UserService {
         }
         int count = userMapper.queryUserCountByFtsId(ftsId);
         if(count == 0) {
-            return Response.fail(WebSocketConstant.ADD_FRIEND_USER_NOT_EXISTS);
+            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
         }
         count = userMapper.queryUserCountByFtsId(anotherFtsId);
         if(count == 0) {
-            return Response.fail(WebSocketConstant.ADD_FRIEND_USER_NOT_EXISTS);
+            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
         }
         count = friendRelationshipMapper.queryFriendRelationshipCount(ftsId, anotherFtsId, FriendRelationship.FriendRelationshipAddType.web);
         if(count > 0) {
@@ -208,6 +208,35 @@ public class UserService {
         return Response.success(resultMap);
     }
 
+    public Response<?> sendMessage(long fromFtsId, long toFtsId, String text, Message.MessageType messageType, String fileUrl) {
+        Assert.isTrue(StringUtils.isNotBlank(text), "sendMessage text blank");
+        Assert.notNull(messageType, "sendMessage messageType null");
+        if(messageType == Message.MessageType.file) {
+            Assert.notNull(fileUrl, "sendMessage fileUrl null");
+        }
+        if(fromFtsId == toFtsId) {
+            return Response.fail(WebSocketConstant.SEND_MESSAGE_WITH_SELF);
+        }
+        int count = userMapper.queryUserCountByFtsId(fromFtsId);
+        if(count == 0) {
+            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
+        }
+        count = userMapper.queryUserCountByFtsId(toFtsId);
+        if(count == 0) {
+            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
+        }
+        Message message = new Message();
+        message.setMessageType(messageType);
+        message.setFromFtsId(fromFtsId);
+        message.setToFtsId(toFtsId);
+        message.setText(text);
+        if(messageType == Message.MessageType.file) {
+            message.setFileUrl(fileUrl);
+        }
+        messageMapper.insertMessage(message);
+        return Response.success();
+    }
+
     /**
      * 用两个fts号码双向查询所有消息，按消息发送时间升序排序，过滤一条打招呼的消息
      * @param ftsId
@@ -218,7 +247,7 @@ public class UserService {
         List<Message> messageList = messageMapper.queryMessageListByTwoFtsIds(ftsId, anotherFtsId),
                 anotherMessageList = messageMapper.queryMessageListByTwoFtsIds(anotherFtsId, ftsId);
         if(!CollectionUtils.isEmpty(messageList)) {
-            messageList.remove(0); //过滤第一条打招呼消息
+            messageList.remove(messageList.size() - 1); //过滤第一条打招呼消息
             messageList.addAll(anotherMessageList);
         } else {
             messageList = anotherMessageList;

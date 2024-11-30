@@ -38,6 +38,14 @@ public class WebSocketDTO {
          * 选中用户获取消息列表返回数据
          */
         RETRIEVE_MESSAGE_LIST_RESULT,
+        /**
+         * 发送文本消息
+         */
+        SEND_MESSAGE_TEXT,
+        /**
+         * 发送文本消息的返回数据
+         */
+        SEND_MESSAGE_TEXT_RESULT,
         ;
     }
 
