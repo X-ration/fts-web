@@ -9,7 +9,6 @@ charset=UTF-8"/>
 </head>
 <body>
 <div id="rootContainer" class="container-fluid" layout:fragment="content">
-    Hello<span th:text="${token}">token</span>
     <div class="row flex-xl-nowrap ml-2 mr-2">
         <div class="col-12 col-md-3 col-xl-2 bd-sidebar">
             <form class="bd-search d-flex align-items-center">
@@ -24,7 +23,7 @@ charset=UTF-8"/>
             <nav class="bd-links collapse" id="sidebar">
                 <button type="button" class="btn btn-outline-primary btn-block" data-toggle="modal" data-target="#addFriendModal">添加好友</button>
                 <div class="bd-toc-item" id="friendListContainer">
-                    <div onclick="alert('hello')" style="cursor: pointer;" class="d-none bd-toc-link">
+                    <div onclick="selectFriend(this)" style="cursor: pointer;" class="d-none bd-toc-link">
                         <h5><strong>用户名</strong></h5>
                         <span class="d-none">ftsId</span>
                         <p>消息内容</p>
@@ -38,7 +37,8 @@ charset=UTF-8"/>
         <main id="mainContainer" class="col-12 col-md-9 col-xl-7 py-md-3 pl-md-5 bd-content" role="main">
             <div class="d-flex flex-column">
                 <div class="row" style="position: relative">
-                    <h4>与用户1对话中</h4>
+                    <h4 id="activeUserMessageTitle">与用户1对话中</h4>
+                    <span class="d-none" id="activeUserFtsId">用户1的Fts号码</span>
                     <div class="d-flex justify-content-end" style="position: absolute; right: 0">
                         <button class="btn btn-outline-primary" type="button" id="showProfile" data-toggle="modal" data-target="#showProfileModal">查看资料</button>
                         <button class="btn btn-outline-primary" type="button" id="modifyProfile" data-toggle="modal" data-target="#modifyProfileModal">修改资料</button>
@@ -287,6 +287,20 @@ charset=UTF-8"/>
             var requestDTO = {'type': 'ADD_FRIEND', 'data': friendFtsId};
             webSocket.send(JSON.stringify(requestDTO));
         });
+        function selectFriend(srcElement) {
+            var srcE = $(srcElement);
+            var ftsIdStr = srcE.children("span:first").html();
+            var ftsId = parseInt(ftsIdStr);
+            var nickname = srcE.children("h5:first").html();
+            if(!isNaN(ftsId)) {
+                $('#activeUserMessageTitle').html('与'+nickname+'对话中');
+                $('#activeUserFtsId').html(ftsIdStr);
+                var requestDTO = {'type': 'RETRIEVE_MESSAGE_LIST', 'data': ftsId};
+                webSocket.send(JSON.stringify(requestDTO));
+            } else {
+                alert("错误的Fts号码");
+            }
+        }
     } else {
         alert('Not support websocket')
     }

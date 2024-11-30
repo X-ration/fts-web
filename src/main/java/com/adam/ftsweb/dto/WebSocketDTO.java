@@ -30,6 +30,14 @@ public class WebSocketDTO {
          * 初始化消息列表
          */
         INITIAL_MESSAGE_LIST,
+        /**
+         * 选中用户获取消息列表
+         */
+        RETRIEVE_MESSAGE_LIST,
+        /**
+         * 选中用户获取消息列表返回数据
+         */
+        RETRIEVE_MESSAGE_LIST_RESULT,
         ;
     }
 

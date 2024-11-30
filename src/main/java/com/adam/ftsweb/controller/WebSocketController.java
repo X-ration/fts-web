@@ -3,7 +3,8 @@ package com.adam.ftsweb.controller;
 import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.WebSocketConstant;
 import com.adam.ftsweb.dto.WebSocketDTO;
-import com.adam.ftsweb.dto.WebSocketMessage;
+import com.adam.ftsweb.dto.WebSocketLeftMessage;
+import com.adam.ftsweb.dto.WebSocketMainMessage;
 import com.adam.ftsweb.dto.WebSocketResponseDTO;
 import com.adam.ftsweb.po.Message;
 import com.adam.ftsweb.service.UserService;
@@ -13,7 +14,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -51,7 +51,7 @@ public class WebSocketController {
     private void initializeMessageList(long ftsId, Session session) {
         WebSocketDTO webSocketDTO = new WebSocketDTO();
         webSocketDTO.setType(WebSocketDTO.WebSocketDTOType.INITIAL_MESSAGE_LIST);
-        List<WebSocketMessage> messageList = userService.queryMessageListByFtsId(ftsId);
+        List<WebSocketLeftMessage> messageList = userService.queryMessageListByFtsId(ftsId);
         webSocketDTO.setData(messageList);
         try {
             String json = objectMapper.writeValueAsString(webSocketDTO);
@@ -80,7 +80,10 @@ public class WebSocketController {
         WebSocketResponseDTO responseDTO = new WebSocketResponseDTO();
         switch (requestDTO.getType()) {
             case ADD_FRIEND:
-                addFriend(responseDTO, requestDTO, ftsId);
+                addFriend(requestDTO, responseDTO, ftsId);
+                break;
+            case RETRIEVE_MESSAGE_LIST:
+                retrieveMessageList(requestDTO, responseDTO, ftsId);
                 break;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
@@ -93,7 +96,26 @@ public class WebSocketController {
         }
     }
 
-    private void addFriend(WebSocketResponseDTO responseDTO, WebSocketDTO requestDTO, long ftsId) {
+    private void retrieveMessageList(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.RETRIEVE_MESSAGE_LIST_RESULT);
+        Object data = requestDTO.getData();
+        if(data == null) {
+            responseDTO.setSuccess(false);
+            responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
+        } else {
+            try {
+                long activeUserFtsId = Long.parseLong(data.toString());
+                List<WebSocketMainMessage> mainMessageList = userService.queryMessageListByTwoFtsIds(ftsId, activeUserFtsId);
+                responseDTO.setSuccess(true);
+                responseDTO.setData(mainMessageList);
+            } catch (NumberFormatException e) {
+                responseDTO.setSuccess(false);
+                responseDTO.setMessage(WebSocketConstant.FTS_ID_NOT_A_NUMBER);
+            }
+        }
+    }
+
+    private void addFriend(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
         responseDTO.setType(WebSocketDTO.WebSocketDTOType.ADD_FRIEND_RESULT);
         Object data = requestDTO.getData();
         long anotherFtsId;
@@ -116,7 +138,7 @@ public class WebSocketController {
                     responseDTO.setData(responseDataMap);
                     WebSocketDTO pushMessageDTO  = new WebSocketDTO();
                     pushMessageDTO.setType(WebSocketDTO.WebSocketDTOType.MESSAGE);
-                    WebSocketMessage pushMessageData = new WebSocketMessage();
+                    WebSocketLeftMessage pushMessageData = new WebSocketLeftMessage();
                     pushMessageData.setText(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
                     pushMessageData.setType(Message.MessageType.text);
                     pushMessageData.setFromFtsId((long)addFriendResponseDataMap.get("ftsId"));

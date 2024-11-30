@@ -1,7 +1,8 @@
 package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.common.UserTokenMapItem;
-import com.adam.ftsweb.dto.WebSocketMessage;
+import com.adam.ftsweb.dto.WebSocketLeftMessage;
+import com.adam.ftsweb.dto.WebSocketMainMessage;
 import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.FriendRelationship;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/")
@@ -99,8 +102,19 @@ public class HelloController {
     @RequestMapping("helloInitialMessageList")
     @ResponseBody
     public Response<?> helloInitialMessageList() {
-        List<WebSocketMessage> webSocketMessageList = userService.queryMessageListByFtsId(10000);
-        return Response.success(webSocketMessageList);
+        List<WebSocketLeftMessage> webSocketLeftMessageList = userService.queryMessageListByFtsId(10000);
+        return Response.success(webSocketLeftMessageList);
+    }
+
+    @RequestMapping("helloQueryMessageListByTwoFtsIds")
+    @ResponseBody
+    public Response<?> helloQueryMessageListByTwoFtsIds() {
+        Map<String, Object> map = new HashMap<>();
+        List<WebSocketMainMessage> mainMessageList = userService.queryMessageListByTwoFtsIds(10000, 10001);
+        map.put("10000-10001", mainMessageList);
+        mainMessageList = userService.queryMessageListByTwoFtsIds(10000,10002);
+        map.put("10000-10002", mainMessageList);
+        return Response.success(map);
     }
 
 }

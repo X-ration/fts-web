@@ -3,13 +3,12 @@ package com.adam.ftsweb.dto;
 import com.adam.ftsweb.po.Message;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 /**
  * 当WebSocketDTO.type=MESSAGE时，data的结构类型
+ * 只用于推送左边栏消息
  */
 @Data
-public class WebSocketMessage {
+public class WebSocketLeftMessage {
     private String text;
     private Message.MessageType type;
     private long fromFtsId;
