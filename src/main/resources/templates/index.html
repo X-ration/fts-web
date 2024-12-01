@@ -250,9 +250,16 @@ charset=UTF-8"/>
                     break;
                 case 'SEND_MESSAGE_TEXT_RESULT':
                     sendMessageTextResult(responseDTO);
+                case 'SEND_MESSAGE_FILE_RESULT':
+                    sendMessageFileResult(responseDTO);
                     break;
             }
         };/*]]>*/
+        function sendMessageFileResult(responseDTO) {
+            if(!responseDTO.success) {
+                alert("发送消息失败,请刷新重试");
+            }
+        }
         function sendMessageTextResult(responseDTO) {
             if(!responseDTO.success) {
                 alert("发送消息失败,请刷新重试");
@@ -283,8 +290,8 @@ charset=UTF-8"/>
                 } else {
                     messageDiv = $('#rightFileTemplate').clone();
                 }
-                message.find("h6:first").html(message.text);
-                message.find("a:first").attr("href", message.fileUrl);
+                messageDiv.find("h6:first").html(message.text);
+                messageDiv.find("a:first").attr("href", message.fileUrl);
             } else {
                 alert("未知的消息类型：" + message.type);
                 return;
@@ -411,7 +418,71 @@ charset=UTF-8"/>
                     alert("已断开连接，请刷新页面重试");
                     return;
                 }
-                alert("Not implemented");
+                var activeUserFtsIdStr = $('#activeUserFtsId').html();
+                var activeUserFtsId = parseInt(activeUserFtsIdStr);
+                if(isNaN(activeUserFtsId)) {
+                    alert("请选择用户");
+                }
+
+                var files = $('#messageFileInput').prop('files');
+                var data = new FormData();
+                data.append("file", files[0]);
+                data.append("token",[[${token}]]);
+                var url = [[@{/file/upload}]];
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: data,
+                    processData: false,
+                    contentType: false,
+                    success: function (ret) {
+                        if(ret.success) {
+                            var downloadUrl = ret.data.downloadUrl;
+                            var filename = ret.data.filename;
+                            var requestDTO = {
+                                'type': 'SEND_MESSAGE_FILE', 'data': {
+                                    'toFtsId': activeUserFtsId, 'text': filename, 'fileUrl': downloadUrl
+                                }
+                            };
+                            webSocket.send(JSON.stringify(requestDTO));
+
+                            var messageDiv = $('#rightFileTemplate').clone();
+                            messageDiv.find("h6:first").html(filename);
+                            messageDiv.removeAttr("id");
+                            messageDiv.removeClass("d-none");
+                            messageDiv.addClass("d-flex");
+                            messageDiv.find("span:first").html(myUserFtsId);
+                            messageDiv.find("a:first").attr('href', downloadUrl);
+                            const now = new Date();
+                            const nowStr = now.toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            }).replaceAll('/', '-');
+                            messageDiv.find("footer:first").html(nowStr);
+                            $('#messageList').append(messageDiv);
+                            var friendListContainer = $('#friendListContainer');
+                            var friendList = friendListContainer.children();
+                            for (var i = 0; i < friendList.length; i++) {
+                                var friendDiv = $(friendList[i]);
+                                var friendFtsIdStr = friendDiv.children("span:first").html();
+                                if (parseInt(friendFtsIdStr) === activeUserFtsId) {
+                                    friendDiv.children("p:first").html(filename);
+                                    break;
+                                }
+                            }
+                        } else {
+                            alert("上传失败：" + ret.message);
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
             });
         }
         messageBoxBindText();

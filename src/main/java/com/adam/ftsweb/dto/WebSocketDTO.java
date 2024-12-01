@@ -46,6 +46,14 @@ public class WebSocketDTO {
          * 发送文本消息的返回数据
          */
         SEND_MESSAGE_TEXT_RESULT,
+        /**
+         * 发送文件
+         */
+        SEND_MESSAGE_FILE,
+        /**
+         * 发送文件的返回数据
+         */
+        SEND_MESSAGE_FILE_RESULT,
         ;
     }
 

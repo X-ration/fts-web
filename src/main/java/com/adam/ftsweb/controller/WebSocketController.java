@@ -89,6 +89,9 @@ public class WebSocketController {
             case SEND_MESSAGE_TEXT:
                 sendMessageText(requestDTO, responseDTO, ftsId);
                 break;
+            case SEND_MESSAGE_FILE:
+                sendMessageFile(requestDTO, responseDTO, ftsId);
+                break;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
         }
@@ -97,6 +100,53 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(responseJson);
         } catch (JsonProcessingException e) {
             log.error("ObjectMapper write responseJson error,dto={}", responseDTO, e);
+        }
+    }
+
+    private void sendMessageFile(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.SEND_MESSAGE_FILE_RESULT);
+        Object data = requestDTO.getData();
+        if(data == null) {
+            responseDTO.setSuccess(false);
+            responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
+        } else {
+            try {
+                Map<String,Object> dataMap = (Map<String,Object>) data;
+                long toFtsId = Long.parseLong(String.valueOf(dataMap.get("toFtsId")));
+                String messageText = String.valueOf(dataMap.get("text"));
+                String fileUrl = String.valueOf(dataMap.get("fileUrl"));
+                Response<?> sendMessageResponse = userService.sendMessage(ftsId, toFtsId, messageText, Message.MessageType.file, fileUrl);
+                responseDTO.setSuccess(sendMessageResponse.isSuccess());
+                if(!sendMessageResponse.isSuccess()) {
+                    responseDTO.setMessage(sendMessageResponse.getMessage());
+                } else {
+                    String fromNickname = (String) sendMessageResponse.getData();
+                    //push message
+                    WebSocketDTO pushMessageDTO  = new WebSocketDTO();
+                    pushMessageDTO.setType(WebSocketDTO.WebSocketDTOType.MESSAGE);
+                    WebSocketMainMessage mainMessage = new WebSocketMainMessage();
+                    mainMessage.setType(Message.MessageType.text);
+                    mainMessage.setText(messageText);
+                    mainMessage.setFileUrl(fileUrl);
+                    mainMessage.setFromFtsId(ftsId);
+                    mainMessage.setToFtsId(toFtsId);
+                    mainMessage.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
+                    mainMessage.setFromNickname(fromNickname);
+                    pushMessageDTO.setData(mainMessage);
+                    Session pushSession = sessionMap.get(toFtsId);
+                    if(pushSession != null && pushSession.isOpen()) {
+                        try {
+                            String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
+                            pushSession.getAsyncRemote().sendText(pushJson);
+                        } catch (JsonProcessingException e) {
+                            log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                        }
+                    }
+                }
+            } catch (NumberFormatException e) {
+                responseDTO.setSuccess(false);
+                responseDTO.setMessage(WebSocketConstant.DATA_STRUCTURE_INVALID);
+            }
         }
     }
 

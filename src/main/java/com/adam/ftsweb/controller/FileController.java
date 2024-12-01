@@ -21,6 +21,8 @@ import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/file")
@@ -34,7 +36,7 @@ public class FileController {
 
     @ResponseBody
     @RequestMapping("/upload")
-    public Response<String> upload(MultipartFile file, String token) {
+    public Response<Map<String,String>> upload(MultipartFile file, String token) {
         if(file == null) {
             return Response.fail(FileConstant.REQUEST_FILE_IS_NULL);
         }
@@ -53,7 +55,10 @@ public class FileController {
                 file.transferTo(file1);
                 String ip = InetAddress.getLocalHost().getHostAddress();
                 String downloadUrl = "http://" + ip + ":" + WebConfig.SERVER_PORT + "/file/download?ftsId=" + ftsId + "&fileName=" + now + file.getOriginalFilename();
-                return Response.success(downloadUrl);
+                Map<String, String> dataMap = new HashMap<>();
+                dataMap.put("filename", file.getOriginalFilename());
+                dataMap.put("downloadUrl", downloadUrl);
+                return Response.success(dataMap);
             } else {
                 return Response.fail(FileConstant.UPLOAD_FAIL);
             }
