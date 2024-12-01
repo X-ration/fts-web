@@ -11,6 +11,8 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -37,11 +39,12 @@ import java.util.List;
 @Configuration
 @EnableWebMvc
 @EnableWebSocket
-public class WebConfig implements WebMvcConfigurer {
+public class WebConfig implements WebMvcConfigurer, ApplicationListener<WebServerInitializedEvent> {
 
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public static int SERVER_PORT = 0;
 
     public static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
             "classpath:/META-INF/resources/", "classpath:/resources/",
@@ -51,6 +54,15 @@ public class WebConfig implements WebMvcConfigurer {
     private LoginInterceptor loginInterceptor;
     @Autowired
     private Jackson2ObjectMapperBuilder builder;
+
+    /**
+     * 获取端口号
+     * @param event the event to respond to
+     */
+    @Override
+    public void onApplicationEvent(WebServerInitializedEvent event) {
+        SERVER_PORT = event.getWebServer().getPort();
+    }
 
     /**
      * 解决No mapping for GET /bootstrap/css/bootstrap.min.css.map
@@ -70,7 +82,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         //避免拦截静态资源，手动添加需要拦截的路径
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/index", "/ws");
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/index", "/ws", "/file/**");
     }
 
     /**
