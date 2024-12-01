@@ -92,7 +92,7 @@ charset=UTF-8"/>
                                 <span class="d-none">fromFtsId</span>
                                 <h5 class="card-title">文件传输消息</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">1.image</h6>
-                                <a href="#">下载文件</a>
+                                <a target="_blank" href="#">下载文件</a>
                                 <blockquote class="blockquote mb-0">
                                     <footer class="blockquote-footer">createTime</footer>
                                 </blockquote>
@@ -105,7 +105,7 @@ charset=UTF-8"/>
                                 <span class="d-none">fromFtsId</span>
                                 <h5 class="card-title">文件传输消息</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">1.image</h6>
-                                <a href="#">下载文件</a>
+                                <a target="_blank" href="#">下载文件</a>
                                 <blockquote class="blockquote mb-0">
                                     <footer class="blockquote-footer">createTime</footer>
                                 </blockquote>
@@ -404,6 +404,7 @@ charset=UTF-8"/>
             }
         }
         window.onbeforeunload = function (){
+            console.log("主动关闭ws连接")
             webSocket.close();
         };
         function messageBoxBindFile() {

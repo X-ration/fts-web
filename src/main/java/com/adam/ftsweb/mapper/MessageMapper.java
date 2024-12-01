@@ -16,7 +16,7 @@ public interface MessageMapper {
 
     @Select({
             "SELECT id,from_fts_id,to_fts_id,text,message_type,file_url,is_show,create_time",
-            "FROM message WHERE to_fts_id=#{ftsId} or from_fts_id=#{ftsId} and is_show=true",
+            "FROM message WHERE to_fts_id=#{ftsId} and is_show=true",
             "ORDER BY id DESC"
     })
     @Results({
