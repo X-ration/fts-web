@@ -116,9 +116,24 @@ charset=UTF-8"/>
                 <hr>
                 <div id="messageBox">
                     <textarea class="form-control mb-1" id="messageTextArea" rows="3"></textarea>
+                    <div id="messageFile" class="d-none form-group">
+                        <label for="messageFileInput">Example file input</label>
+                        <input type="file" class="form-control-file" id="messageFileInput">
+                    </div>
                     <div class="btn-group" role="group">
-                        <button type="button" id="sendMessageButton" class="btn btn-primary">发送消息</button>
-                        <button type="button" id="sendFileButton" class="btn btn-primary">发送文件</button>
+                        <button type="button" id="sendButton" class="btn btn-primary">发送</button>
+                        <div id="messageBoxBindText" class="input-group-append">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">文本消息</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" type="button" onclick="messageBoxBindFile()">文件传输</button>
+                            </div>
+                        </div>
+                        <div id="messageBoxBindFile" class="d-none input-group-append">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">文件传输</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" type="button" onclick="messageBoxBindText()">文本消息</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -384,52 +399,83 @@ charset=UTF-8"/>
         window.onbeforeunload = function (){
             webSocket.close();
         };
-        $('#sendMessageButton').bind('click', function () {
-            if(webSocket.readyState !== WebSocket.OPEN) {
-                alert("已断开连接，请刷新页面重试");
-                return;
-            }
-            var messageText = $('#messageTextArea').val();
-            if (messageText !== '') {
-                var activeUserFtsIdStr = $('#activeUserFtsId').html();
-                var activeUserFtsId = parseInt(activeUserFtsIdStr);
-                var myUserFtsIdStr = $('#myUserFtsId').html();
-                var myUserFtsId = parseInt(myUserFtsIdStr);
-                if(!isNaN(activeUserFtsId) && !isNaN(myUserFtsId)) {
-                    var requestDTO = {
-                        'type': 'SEND_MESSAGE_TEXT', 'data': {
-                            'toFtsId': activeUserFtsId, 'text': messageText
-                        }
-                    };
-                    webSocket.send(JSON.stringify(requestDTO));
-                    $('#messageTextArea').val('');
-                    var messageDiv = $('#rightMessageTemplate').clone();
-                    messageDiv.find("p:first").html(messageText);
-                    messageDiv.removeAttr("id");
-                    messageDiv.removeClass("d-none");
-                    messageDiv.addClass("d-flex");
-                    messageDiv.find("span:first").html(myUserFtsId);
-                    const now = new Date();
-                    const nowStr = now.toLocaleString('zh-CN', {year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'}).replaceAll('/','-');
-                    messageDiv.find("footer:first").html(nowStr);
-                    $('#messageList').append(messageDiv);
-                    var friendListContainer = $('#friendListContainer');
-                    var friendList = friendListContainer.children();
-                    for(var i=0;i<friendList.length;i++) {
-                        var friendDiv = $(friendList[i]);
-                        var friendFtsIdStr = friendDiv.children("span:first").html();
-                        if(parseInt(friendFtsIdStr) === activeUserFtsId) {
-                            friendDiv.children("p:first").html(messageText);
-                            break;
-                        }
-                    }
-                } else if(isNaN(activeUserFtsId)) {
-                    alert("请选择用户");
-                } else {
-                    alert("页面错误，请刷新重试");
+        function messageBoxBindFile() {
+            $('#messageTextArea').addClass("d-none");
+            $('#messageFile').removeClass("d-none");
+            $('#messageBoxBindFile').removeClass("d-none");
+            $('#messageBoxBindText').addClass("d-none");
+            var sendButton = $('#sendButton');
+            sendButton.unbind('click');
+            sendButton.bind('click', function () {
+                if (webSocket.readyState !== WebSocket.OPEN) {
+                    alert("已断开连接，请刷新页面重试");
+                    return;
                 }
-            }
-        });
+                alert("Not implemented");
+            });
+        }
+        messageBoxBindText();
+        function messageBoxBindText() {
+            $('#messageTextArea').removeClass("d-none");
+            $('#messageFile').addClass("d-none");
+            $('#messageBoxBindFile').addClass("d-none");
+            $('#messageBoxBindText').removeClass("d-none");
+            var sendButton = $('#sendButton');
+            sendButton.unbind('click');
+            sendButton.bind('click', function () {
+                if (webSocket.readyState !== WebSocket.OPEN) {
+                    alert("已断开连接，请刷新页面重试");
+                    return;
+                }
+                var messageText = $('#messageTextArea').val();
+                if (messageText !== '') {
+                    var activeUserFtsIdStr = $('#activeUserFtsId').html();
+                    var activeUserFtsId = parseInt(activeUserFtsIdStr);
+                    var myUserFtsIdStr = $('#myUserFtsId').html();
+                    var myUserFtsId = parseInt(myUserFtsIdStr);
+                    if (!isNaN(activeUserFtsId) && !isNaN(myUserFtsId)) {
+                        var requestDTO = {
+                            'type': 'SEND_MESSAGE_TEXT', 'data': {
+                                'toFtsId': activeUserFtsId, 'text': messageText
+                            }
+                        };
+                        webSocket.send(JSON.stringify(requestDTO));
+                        $('#messageTextArea').val('');
+                        var messageDiv = $('#rightMessageTemplate').clone();
+                        messageDiv.find("p:first").html(messageText);
+                        messageDiv.removeAttr("id");
+                        messageDiv.removeClass("d-none");
+                        messageDiv.addClass("d-flex");
+                        messageDiv.find("span:first").html(myUserFtsId);
+                        const now = new Date();
+                        const nowStr = now.toLocaleString('zh-CN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        }).replaceAll('/', '-');
+                        messageDiv.find("footer:first").html(nowStr);
+                        $('#messageList').append(messageDiv);
+                        var friendListContainer = $('#friendListContainer');
+                        var friendList = friendListContainer.children();
+                        for (var i = 0; i < friendList.length; i++) {
+                            var friendDiv = $(friendList[i]);
+                            var friendFtsIdStr = friendDiv.children("span:first").html();
+                            if (parseInt(friendFtsIdStr) === activeUserFtsId) {
+                                friendDiv.children("p:first").html(messageText);
+                                break;
+                            }
+                        }
+                    } else if (isNaN(activeUserFtsId)) {
+                        alert("请选择用户");
+                    } else {
+                        alert("页面错误，请刷新重试");
+                    }
+                }
+            });
+        }
         $('#addFriendButton').bind('click', function () {
             if(webSocket.readyState !== WebSocket.OPEN) {
                 alert("已断开连接，请刷新页面重试");
