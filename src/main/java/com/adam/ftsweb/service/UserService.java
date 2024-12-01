@@ -281,40 +281,61 @@ public class UserService {
         return nicknameMap;
     }
 
+    private Map<Long,LocalDateTime> queryFriendFtsIdToCreateTimeMap(long ftsId) {
+        List<Map<String,Object>> friendFtsIdListWithCreateTime = friendRelationshipMapper.queryFriendFtsIdsWithCreateTime(ftsId, FriendRelationship.FriendRelationshipAddType.web);
+        Map<Long,LocalDateTime> friendFtsIdToCreateTimeMap = new HashMap<>();
+        friendFtsIdListWithCreateTime.forEach(stringObjectMap -> friendFtsIdToCreateTimeMap.put((long)stringObjectMap.get("user_fts_id"), (LocalDateTime) stringObjectMap.get("create_time")));
+        return friendFtsIdToCreateTimeMap;
+    }
+
     /**
      * 查询某fts号码收到的所有消息，<strong>每个fts号码发来的消息只保留一条最新的</strong>
      * @param ftsId
      * @return
      */
     public List<WebSocketLeftMessage> queryMessageListByFtsId(long ftsId) {
-        List<Message> messageList = messageMapper.queryMessageListByFtsId(ftsId);
-        if(CollectionUtils.isEmpty(messageList)) {
+        Map<Long,LocalDateTime> friendFtsIdToCreateTimeMap = queryFriendFtsIdToCreateTimeMap(ftsId);
+        if(CollectionUtils.isEmpty(friendFtsIdToCreateTimeMap)) {
             return new ArrayList<>();
         }
-        Set<Long> userFtsIds = new HashSet<>();
-        messageList.forEach(message -> userFtsIds.add(message.getFromFtsId()));
-        Map<Long,String> nicknameMap = queryFtsIdToNicknameMap(userFtsIds);
-        List<WebSocketLeftMessage> webSocketLeftMessageList = new LinkedList<>();
-        messageList.forEach(message -> {
-            WebSocketLeftMessage webSocketLeftMessage = new WebSocketLeftMessage();
-            webSocketLeftMessage.setType(message.getMessageType());
-            webSocketLeftMessage.setToFtsId(message.getToFtsId());
-            webSocketLeftMessage.setText(message.getText());
-            webSocketLeftMessage.setFromFtsId(message.getFromFtsId());
-            webSocketLeftMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));
-            webSocketLeftMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
-            webSocketLeftMessageList.add(webSocketLeftMessage);
-        });
-        Set<Long> fromUserFtsIds = new HashSet<>();
-        for(Iterator<WebSocketLeftMessage> iterator = webSocketLeftMessageList.iterator(); iterator.hasNext(); ) {
-            WebSocketLeftMessage webSocketLeftMessage = iterator.next();
-            if(fromUserFtsIds.contains(webSocketLeftMessage.getFromFtsId())) {
-                iterator.remove();
+        Map<Long,String> nicknameMap = queryFtsIdToNicknameMap(friendFtsIdToCreateTimeMap.keySet());
+        List<Message> messageList = new LinkedList<>();
+        for(Long friendFtsId: friendFtsIdToCreateTimeMap.keySet()) {
+            List<Message> oneMessageList = messageMapper.queryMessageListBothOneByTwoFtsIds(ftsId, friendFtsId);
+            Message message;
+            if(CollectionUtils.isEmpty(oneMessageList)) {
+                message = new Message();
+                message.setMessageType(Message.MessageType.text);
+                message.setText("");
+                message.setCreateTime(friendFtsIdToCreateTimeMap.get(friendFtsId));
+                message.setFromFtsId(friendFtsId);
+                messageList.add(message);
+            } else if(oneMessageList.size() == 1) {
+                messageList.add(oneMessageList.get(0));
             } else {
-                fromUserFtsIds.add(webSocketLeftMessage.getFromFtsId());
+                Message message1 = oneMessageList.get(0), message2 = oneMessageList.get(1);
+                int compare = message1.getCreateTime().compareTo(message2.getCreateTime());
+                if(compare < 0) {
+                    messageList.add(message2);
+                } else {
+                    messageList.add(message1);
+                }
             }
+            messageList.get(messageList.size() - 1).setFromFtsId(friendFtsId);
+            messageList.get(messageList.size() - 1).setToFtsId(0);
         }
-        return webSocketLeftMessageList;
+        messageList.sort((o1, o2) -> -1 * o1.getCreateTime().compareTo(o2.getCreateTime()));
+        List<WebSocketLeftMessage> resultList = messageList.stream().map(message -> {
+            WebSocketLeftMessage leftMessage = new WebSocketLeftMessage();
+            leftMessage.setType(message.getMessageType());
+            leftMessage.setText(message.getText());
+            leftMessage.setFromFtsId(message.getFromFtsId());
+            leftMessage.setToFtsId(message.getToFtsId());
+            leftMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));
+            leftMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
+            return leftMessage;
+        }).collect(Collectors.toList());
+        return resultList;
     }
 
     @Transactional
