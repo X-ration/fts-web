@@ -317,6 +317,7 @@ charset=UTF-8"/>
                         var message = messageList[i];
                         retrieveOneMessageMain(message,activeUserFtsId);
                     }
+                    scrollMessageList();
                 } else {
                     alert("获取消息列表失败，请刷新页面");
                 }
@@ -478,6 +479,7 @@ charset=UTF-8"/>
                                     break;
                                 }
                             }
+                            scrollMessageList();
                         } else {
                             alert("上传失败：" + ret.message);
                         }
@@ -542,6 +544,7 @@ charset=UTF-8"/>
                                 break;
                             }
                         }
+                        scrollMessageList();
                     } else if (isNaN(activeUserFtsId)) {
                         alert("请选择用户");
                     } else {
@@ -549,6 +552,10 @@ charset=UTF-8"/>
                     }
                 }
             });
+        }
+        function scrollMessageList() {
+            var messageListDiv = document.getElementById('messageList');
+            messageListDiv.scrollTop = messageListDiv.scrollHeight;
         }
         $('#addFriendButton').bind('click', function () {
             if(webSocket.readyState !== WebSocket.OPEN) {

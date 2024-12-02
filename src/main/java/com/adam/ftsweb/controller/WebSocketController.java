@@ -125,7 +125,7 @@ public class WebSocketController {
                     WebSocketDTO pushMessageDTO  = new WebSocketDTO();
                     pushMessageDTO.setType(WebSocketDTO.WebSocketDTOType.MESSAGE);
                     WebSocketMainMessage mainMessage = new WebSocketMainMessage();
-                    mainMessage.setType(Message.MessageType.text);
+                    mainMessage.setType(Message.MessageType.file);
                     mainMessage.setText(messageText);
                     mainMessage.setFileUrl(fileUrl);
                     mainMessage.setFromFtsId(ftsId);
