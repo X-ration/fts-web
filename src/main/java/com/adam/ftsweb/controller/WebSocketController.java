@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -35,7 +36,7 @@ public class WebSocketController {
     private static FriendRelationshipService friendRelationshipService;
     private static MessageService messageService;
     private static ObjectMapper objectMapper;
-    private static Map<Long, Session> sessionMap = Collections.synchronizedMap(new HashMap<>());
+    private static Map<Long, List<Session>> sessionMap = Collections.synchronizedMap(new HashMap<>());
 
     public static void setUserService(UserService userService, FriendRelationshipService friendRelationshipService,
                                       MessageService messageService, ObjectMapper objectMapper) {
@@ -52,7 +53,9 @@ public class WebSocketController {
         Long ftsId = userService.getFtsIdByToken(token, false);
         Assert.notNull(ftsId, "ws connection invalid token");
         log.info("ws connection open token={} ftsId={} sessionId={}", token, ftsId, session.getId());
-        sessionMap.put(ftsId, session);
+//        sessionMap.put(ftsId, session);
+        List<Session> sessionList = sessionMap.computeIfAbsent(ftsId, k -> new LinkedList<>());
+        sessionList.add(session);
         initializeMessageList(ftsId, session);
     }
 
@@ -75,7 +78,9 @@ public class WebSocketController {
         Long ftsId = userService.getFtsIdByToken(token, false);
         Assert.notNull(ftsId, "ws connection invalid token");
         log.info("ws connection close token={} ftsId={} sessionId={}", token, ftsId, session.getId());
-        sessionMap.remove(ftsId);
+//        sessionMap.remove(ftsId);
+        List<Session> sessionList = sessionMap.get(ftsId);
+        sessionList.remove(session);
     }
 
     @OnMessage
@@ -140,13 +145,17 @@ public class WebSocketController {
                     mainMessage.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
                     mainMessage.setFromNickname(fromNickname);
                     pushMessageDTO.setData(mainMessage);
-                    Session pushSession = sessionMap.get(toFtsId);
-                    if(pushSession != null && pushSession.isOpen()) {
-                        try {
-                            String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
-                            pushSession.getAsyncRemote().sendText(pushJson);
-                        } catch (JsonProcessingException e) {
-                            log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                    List<Session> sessionList = sessionMap.get(toFtsId);
+                    if(!CollectionUtils.isEmpty(sessionList)) {
+                        for (Session pushSession : sessionList) {
+                            if (pushSession != null && pushSession.isOpen()) {
+                                try {
+                                    String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
+                                    pushSession.getAsyncRemote().sendText(pushJson);
+                                } catch (JsonProcessingException e) {
+                                    log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                                }
+                            }
                         }
                     }
                 }
@@ -185,13 +194,17 @@ public class WebSocketController {
                     mainMessage.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
                     mainMessage.setFromNickname(fromNickname);
                     pushMessageDTO.setData(mainMessage);
-                    Session pushSession = sessionMap.get(toFtsId);
-                    if(pushSession != null && pushSession.isOpen()) {
-                        try {
-                            String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
-                            pushSession.getAsyncRemote().sendText(pushJson);
-                        } catch (JsonProcessingException e) {
-                            log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                    List<Session> sessionList = sessionMap.get(toFtsId);
+                    if(!CollectionUtils.isEmpty(sessionList)) {
+                        for (Session pushSession : sessionList) {
+                            if (pushSession != null && pushSession.isOpen()) {
+                                try {
+                                    String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
+                                    pushSession.getAsyncRemote().sendText(pushJson);
+                                } catch (JsonProcessingException e) {
+                                    log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                                }
+                            }
                         }
                     }
                 }
@@ -252,13 +265,17 @@ public class WebSocketController {
                     pushMessageData.setToFtsId(ftsId);
                     pushMessageData.setCreateTime(LocalDateTime.now().format(WebConfig.DATE_TIME_FORMATTER));
                     pushMessageDTO.setData(pushMessageData);
-                    Session pushSession = sessionMap.get(anotherFtsId);
-                    if(pushSession != null && pushSession.isOpen()) {
-                        try {
-                            String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
-                            pushSession.getAsyncRemote().sendText(pushJson);
-                        } catch (JsonProcessingException e) {
-                            log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                    List<Session> sessionList = sessionMap.get(anotherFtsId);
+                    if(!CollectionUtils.isEmpty(sessionList)) {
+                        for (Session pushSession : sessionList) {
+                            if (pushSession != null && pushSession.isOpen()) {
+                                try {
+                                    String pushJson = objectMapper.writeValueAsString(pushMessageDTO);
+                                    pushSession.getAsyncRemote().sendText(pushJson);
+                                } catch (JsonProcessingException e) {
+                                    log.error("ObjectMapper write pushJson error,dto={}", pushMessageDTO, e);
+                                }
+                            }
                         }
                     }
                 }

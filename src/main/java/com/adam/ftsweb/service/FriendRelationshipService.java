@@ -41,9 +41,6 @@ public class FriendRelationshipService {
     public Response<?> addFriend(Long ftsId, Long anotherFtsId) {
         Assert.notNull(ftsId, "addFriend ftsId null");
         Assert.notNull(anotherFtsId, "addFriend anotherFtsId null");
-        if(ftsId.equals(anotherFtsId)) {
-            return Response.fail(WebSocketConstant.ADD_FRIEND_WITH_SELF);
-        }
         if(!userService.userExists(ftsId) || !userService.userExists(anotherFtsId)) {
             return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
         }
@@ -57,9 +54,11 @@ public class FriendRelationshipService {
         friendRelationship.setAddType(FriendRelationship.FriendRelationshipAddType.web);
         friendRelationshipMapper.insertFriendRelationship(friendRelationship);
         //双向添加好友关系
-        friendRelationship.setUserFtsId(anotherFtsId);
-        friendRelationship.setAnotherUserFtsId(ftsId);
-        friendRelationshipMapper.insertFriendRelationship(friendRelationship);
+        if(!ftsId.equals(anotherFtsId)) {
+            friendRelationship.setUserFtsId(anotherFtsId);
+            friendRelationship.setAnotherUserFtsId(ftsId);
+            friendRelationshipMapper.insertFriendRelationship(friendRelationship);
+        }
 
         //双向发送打招呼消息
         Message helloMessage = new Message();
@@ -68,9 +67,11 @@ public class FriendRelationshipService {
         helloMessage.setText(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
         helloMessage.setMessageType(Message.MessageType.text);
         messageMapper.insertMessage(helloMessage);
-        helloMessage.setFromFtsId(anotherFtsId);
-        helloMessage.setToFtsId(ftsId);
-        messageMapper.insertMessage(helloMessage);
+        if(!ftsId.equals(anotherFtsId)) {
+            helloMessage.setFromFtsId(anotherFtsId);
+            helloMessage.setToFtsId(ftsId);
+            messageMapper.insertMessage(helloMessage);
+        }
         Set<Long> ftsIdSet = new HashSet<>();
         ftsIdSet.add(ftsId);
         ftsIdSet.add(anotherFtsId);

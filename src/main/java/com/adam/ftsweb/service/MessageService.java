@@ -83,9 +83,6 @@ public class MessageService {
         if(messageType == Message.MessageType.file) {
             Assert.notNull(fileUrl, "sendMessage fileUrl null");
         }
-        if(fromFtsId == toFtsId) {
-            return Response.fail(WebSocketConstant.SEND_MESSAGE_WITH_SELF);
-        }
         if(!userService.userExists(fromFtsId) || !userService.userExists(toFtsId)) {
             return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
         }
@@ -109,8 +106,13 @@ public class MessageService {
      * @return
      */
     public List<WebSocketMainMessage> queryMessageListByTwoFtsIds(long ftsId, long anotherFtsId) {
-        List<Message> messageList = messageMapper.queryMessageListByTwoFtsIds(ftsId, anotherFtsId),
-                anotherMessageList = messageMapper.queryMessageListByTwoFtsIds(anotherFtsId, ftsId);
+        List<Message> messageList = messageMapper.queryMessageListByTwoFtsIds(ftsId, anotherFtsId);
+        List<Message> anotherMessageList;
+        if(ftsId != anotherFtsId) {
+            anotherMessageList = messageMapper.queryMessageListByTwoFtsIds(anotherFtsId, ftsId);
+        } else {
+            anotherMessageList = new ArrayList<>();
+        }
         if(!CollectionUtils.isEmpty(messageList)) {
             messageList.addAll(anotherMessageList);
         } else {
