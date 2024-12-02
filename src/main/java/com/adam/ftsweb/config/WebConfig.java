@@ -10,8 +10,10 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
+import org.apache.catalina.connector.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,6 +56,20 @@ public class WebConfig implements WebMvcConfigurer, ApplicationListener<WebServe
     private LoginInterceptor loginInterceptor;
     @Autowired
     private Jackson2ObjectMapperBuilder builder;
+
+    /**
+     * 允许在请求路径中包含特殊字符
+     * @return
+     */
+    @Bean
+    public TomcatServletWebServerFactory webServerFactory() {
+        TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
+        factory.addConnectorCustomizers((Connector connector) -> {
+            connector.setProperty("relaxedPathChars", "\"<>[\\]^`{|}");
+            connector.setProperty("relaxedQueryChars", "\"<>[\\]^`{|}");
+        });
+        return factory;
+    }
 
     /**
      * 获取端口号
