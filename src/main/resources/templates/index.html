@@ -277,17 +277,23 @@ charset=UTF-8"/>
                 }
             }
         }
-        function retrieveOneMessageMain(message,activeUserFtsId) {
+        function retrieveOneMessageMain(message,activeUserFtsId,myUserFtsId) {
             var messageDiv;
             if(message.type === 'text') {
-                if (activeUserFtsId === message.fromFtsId) {
+                if (myUserFtsId === activeUserFtsId) {
+                    messageDiv = $('#rightMessageTemplate').clone();
+                }
+                else if (activeUserFtsId === message.fromFtsId) {
                     messageDiv = $('#leftMessageTemplate').clone();
                 } else {
                     messageDiv = $('#rightMessageTemplate').clone();
                 }
                 messageDiv.find("p:first").html(message.text);
             } else if(message.type === 'file') {
-                if (activeUserFtsId === message.fromFtsId) {
+                if (myUserFtsId === activeUserFtsId) {
+                    messageDiv = $('#rightFileTemplate').clone();
+                }
+                else if (activeUserFtsId === message.fromFtsId) {
                     messageDiv = $('#leftFileTemplate').clone();
                 } else {
                     messageDiv = $('#rightFileTemplate').clone();
@@ -307,6 +313,8 @@ charset=UTF-8"/>
         }
         function retrieveMessageList(responseDTO) {
             var status = responseDTO.success;
+            var myUserFtsIdStr = $('#myUserFtsId').html();
+            var myUserFtsId = parseInt(myUserFtsIdStr);
             if(status) {
                 var activeUserFtsIdStr = $('#activeUserFtsId').html();
                 var activeUserFtsId = parseInt(activeUserFtsIdStr);
@@ -315,7 +323,9 @@ charset=UTF-8"/>
                     var messageList = responseDTO.data;
                     for(var i=0;i<messageList.length;i++) {
                         var message = messageList[i];
-                        retrieveOneMessageMain(message,activeUserFtsId);
+                        if(!isNaN(myUserFtsId)) {
+                            retrieveOneMessageMain(message, activeUserFtsId, myUserFtsId);
+                        }
                     }
                     scrollMessageList();
                 } else {
@@ -327,17 +337,21 @@ charset=UTF-8"/>
         }
         function addFriendResult(responseDTO) {
             var status = responseDTO.success;
+            var myUserFtsIdStr = $('#myUserFtsId').html();
+            var myUserFtsId = parseInt(myUserFtsIdStr);
             if(status) {
                 var friendListContainer = $('#friendListContainer');
                 alert("添加成功");
-                $('#addFriendModal').modal('hide');
-                $('#addFriendFtsId').val('');
-                var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
-                addedFriendDiv.removeClass('d-none');
-                addedFriendDiv.find("h5:first strong:first").html(responseDTO.data.nickname);
-                addedFriendDiv.children("span:first").html(responseDTO.data.userFtsId);
-                addedFriendDiv.children("p:first").html(responseDTO.data.helloMessage);
-                friendListContainer.prepend(addedFriendDiv);
+                if(!isNaN(myUserFtsId) && myUserFtsId !== responseDTO.data.userFtsId) {
+                    $('#addFriendModal').modal('hide');
+                    $('#addFriendFtsId').val('');
+                    var addedFriendDiv = $($('.d-none.bd-toc-link')[0]).clone();
+                    addedFriendDiv.removeClass('d-none');
+                    addedFriendDiv.find("h5:first strong:first").html(responseDTO.data.nickname);
+                    addedFriendDiv.children("span:first").html(responseDTO.data.userFtsId);
+                    addedFriendDiv.children("p:first").html(responseDTO.data.helloMessage);
+                    friendListContainer.prepend(addedFriendDiv);
+                }
             } else {
                 alert("添加失败:" + responseDTO.message);
             }
@@ -347,6 +361,8 @@ charset=UTF-8"/>
             var friendListContainer = $('#friendListContainer');
             var friendList = friendListContainer.children();
             var foundFriend = false;
+            var myUserFtsIdStr = $('#myUserFtsId').html();
+            var myUserFtsId = parseInt(myUserFtsIdStr);
             for(var i=0;i<friendList.length;i++) {
                 var friendDiv = $(friendList[i]);
                 var friendFtsIdStr = friendDiv.children("span:first").html();
@@ -355,9 +371,9 @@ charset=UTF-8"/>
                     friendDiv.children("p:first").html(message.text);
                     var activeUserFtsIdStr = $('#activeUserFtsId').html();
                     var activeUserFtsId = parseInt(activeUserFtsIdStr);
-                    if(!isNaN(activeUserFtsId) &&
+                    if(!isNaN(activeUserFtsId) && !isNaN(myUserFtsId) &&
                         (activeUserFtsId === message.fromFtsId || activeUserFtsId === message.toFtsId)) {
-                        retrieveOneMessageMain(message, activeUserFtsId);
+                        retrieveOneMessageMain(message, activeUserFtsId, myUserFtsId);
                         scrollMessageList();
                     }
                     break;
@@ -428,6 +444,11 @@ charset=UTF-8"/>
                 if(isNaN(activeUserFtsId)) {
                     alert("请选择用户");
                 }
+                var myUserFtsIdStr = $('#myUserFtsId').html();
+                var myUserFtsId = parseInt(myUserFtsIdStr);
+                if(isNaN(myUserFtsId)) {
+                    alert("页面错误，请刷新页面");
+                }
 
                 var files = $('#messageFileInput').prop('files');
                 var data = new FormData();
@@ -452,24 +473,26 @@ charset=UTF-8"/>
                             };
                             webSocket.send(JSON.stringify(requestDTO));
 
-                            var messageDiv = $('#rightFileTemplate').clone();
-                            messageDiv.find("h6:first").html(filename);
-                            messageDiv.removeAttr("id");
-                            messageDiv.removeClass("d-none");
-                            messageDiv.addClass("d-flex");
-                            messageDiv.find("span:first").html(myUserFtsId);
-                            messageDiv.find("a:first").attr('href', downloadUrl);
-                            const now = new Date();
-                            const nowStr = now.toLocaleString('zh-CN', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                            }).replaceAll('/', '-');
-                            messageDiv.find("footer:first").html(nowStr);
-                            $('#messageList').append(messageDiv);
+                            if(activeUserFtsId !== myUserFtsId) {
+                                var messageDiv = $('#rightFileTemplate').clone();
+                                messageDiv.find("h6:first").html(filename);
+                                messageDiv.removeAttr("id");
+                                messageDiv.removeClass("d-none");
+                                messageDiv.addClass("d-flex");
+                                messageDiv.find("span:first").html(myUserFtsId);
+                                messageDiv.find("a:first").attr('href', downloadUrl);
+                                const now = new Date();
+                                const nowStr = now.toLocaleString('zh-CN', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                }).replaceAll('/', '-');
+                                messageDiv.find("footer:first").html(nowStr);
+                                $('#messageList').append(messageDiv);
+                            }
                             var friendListContainer = $('#friendListContainer');
                             var friendList = friendListContainer.children();
                             for (var i = 0; i < friendList.length; i++) {
@@ -518,23 +541,25 @@ charset=UTF-8"/>
                         };
                         webSocket.send(JSON.stringify(requestDTO));
                         $('#messageTextArea').val('');
-                        var messageDiv = $('#rightMessageTemplate').clone();
-                        messageDiv.find("p:first").html(messageText);
-                        messageDiv.removeAttr("id");
-                        messageDiv.removeClass("d-none");
-                        messageDiv.addClass("d-flex");
-                        messageDiv.find("span:first").html(myUserFtsId);
-                        const now = new Date();
-                        const nowStr = now.toLocaleString('zh-CN', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        }).replaceAll('/', '-');
-                        messageDiv.find("footer:first").html(nowStr);
-                        $('#messageList').append(messageDiv);
+                        if(activeUserFtsId !== myUserFtsId) {
+                            var messageDiv = $('#rightMessageTemplate').clone();
+                            messageDiv.find("p:first").html(messageText);
+                            messageDiv.removeAttr("id");
+                            messageDiv.removeClass("d-none");
+                            messageDiv.addClass("d-flex");
+                            messageDiv.find("span:first").html(myUserFtsId);
+                            const now = new Date();
+                            const nowStr = now.toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            }).replaceAll('/', '-');
+                            messageDiv.find("footer:first").html(nowStr);
+                            $('#messageList').append(messageDiv);
+                        }
                         var friendListContainer = $('#friendListContainer');
                         var friendList = friendListContainer.children();
                         for (var i = 0; i < friendList.length; i++) {
