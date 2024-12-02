@@ -15,4 +15,8 @@ public class SystemConstant {
      */
     public static final long USER_TOKEN_TO_FTS_ID_MAP_DEFAULT_EXPIRES = 60 * 60 * 24 * 7;
 
+    /**
+     * 文件过期时间为7天
+     */
+    public static final long FILE_EXPIRE_TIME_MILLS = 1000 * 60 * 60 * 24 * 7;
 }

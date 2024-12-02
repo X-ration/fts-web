@@ -2,11 +2,14 @@ package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.FileConstant;
+import com.adam.ftsweb.constant.SystemConstant;
 import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -89,6 +92,43 @@ public class FileController {
             outputStream.write(b, 0, len);
         }
         inputStream.close();
+    }
+
+    @Scheduled(cron = "0 0 0 1/7 * ? ")
+    public void automaticCleanExpiredFiles() {
+        log.info("[Scheduled]FileController automaticCleanExpiredFiles runs");
+        File rootDirectory = new File(rootPath);
+        File[] files = rootDirectory.listFiles();
+        long currentTimeMills = System.currentTimeMillis();
+        for(File subDir: files) {
+            File[] innerFiles = subDir.listFiles();
+            for(File file: innerFiles) {
+                cleanFile(file, currentTimeMills);
+            }
+            innerFiles = subDir.listFiles();
+            if(ArrayUtils.isEmpty(innerFiles)) {
+                boolean deleteFlag = subDir.delete();
+                if(deleteFlag) {
+                    log.debug("cleaned empty directory {}", subDir.getPath());
+                } else {
+                    log.warn("Not cleaned empty directory {}", subDir.getPath());
+                }
+            }
+        }
+        log.info("[Scheduled]FileController automaticCleanExpiredFiles ends");
+    }
+
+    private void cleanFile(File file, long currentTimeMills) {
+        long lastModified = file.lastModified();
+        long diff = currentTimeMills - lastModified;
+        if(diff >= SystemConstant.FILE_EXPIRE_TIME_MILLS) {
+            boolean deleteFlag = file.delete();
+            if(deleteFlag) {
+                log.debug("cleaned expired file {} {}", file.getPath(), file.getName());
+            } else {
+                log.warn("Not cleaned expired file {} {}", file.getPath(), file.getName());
+            }
+        }
     }
 
     public static void main(String[] args) {

@@ -152,6 +152,7 @@ public class UserService {
                 log.debug("自动清理userTokenToFtsIdMap token={}", token);
             }}
         }
+        log.info("[Scheduled]UserService automaticCleanExpiredUserTokenMapItems ends");
     }
 
     /**
