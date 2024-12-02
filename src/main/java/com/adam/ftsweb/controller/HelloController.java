@@ -7,6 +7,8 @@ import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.UserMapper;
 import com.adam.ftsweb.po.FriendRelationship;
 import com.adam.ftsweb.po.User;
+import com.adam.ftsweb.service.FriendRelationshipService;
+import com.adam.ftsweb.service.MessageService;
 import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,10 @@ public class HelloController {
     private FriendRelationshipMapper friendRelationshipMapper;
     @Autowired
     private UserService userService;
+    @Autowired
+    private FriendRelationshipService friendRelationshipService;
+    @Autowired
+    private MessageService messageService;
 
     @RequestMapping("hello")
     @ResponseBody
@@ -102,7 +108,7 @@ public class HelloController {
     @RequestMapping("helloInitialMessageList")
     @ResponseBody
     public Response<?> helloInitialMessageList() {
-        List<WebSocketLeftMessage> webSocketLeftMessageList = userService.queryMessageListByFtsId(10000);
+        List<WebSocketLeftMessage> webSocketLeftMessageList = messageService.queryMessageListByFtsId(10000);
         return Response.success(webSocketLeftMessageList);
     }
 
@@ -110,9 +116,9 @@ public class HelloController {
     @ResponseBody
     public Response<?> helloQueryMessageListByTwoFtsIds() {
         Map<String, Object> map = new HashMap<>();
-        List<WebSocketMainMessage> mainMessageList = userService.queryMessageListByTwoFtsIds(10000, 10001);
+        List<WebSocketMainMessage> mainMessageList = messageService.queryMessageListByTwoFtsIds(10000, 10001);
         map.put("10000-10001", mainMessageList);
-        mainMessageList = userService.queryMessageListByTwoFtsIds(10000,10002);
+        mainMessageList = messageService.queryMessageListByTwoFtsIds(10000,10002);
         map.put("10000-10002", mainMessageList);
         return Response.success(map);
     }

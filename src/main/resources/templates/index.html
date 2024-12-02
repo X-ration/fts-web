@@ -358,6 +358,7 @@ charset=UTF-8"/>
                     if(!isNaN(activeUserFtsId) &&
                         (activeUserFtsId === message.fromFtsId || activeUserFtsId === message.toFtsId)) {
                         retrieveOneMessageMain(message, activeUserFtsId);
+                        scrollMessageList();
                     }
                     break;
                 }

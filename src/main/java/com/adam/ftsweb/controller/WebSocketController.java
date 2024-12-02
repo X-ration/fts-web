@@ -7,6 +7,8 @@ import com.adam.ftsweb.dto.WebSocketLeftMessage;
 import com.adam.ftsweb.dto.WebSocketMainMessage;
 import com.adam.ftsweb.dto.WebSocketResponseDTO;
 import com.adam.ftsweb.po.Message;
+import com.adam.ftsweb.service.FriendRelationshipService;
+import com.adam.ftsweb.service.MessageService;
 import com.adam.ftsweb.service.UserService;
 import com.adam.ftsweb.util.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,11 +32,16 @@ import java.util.*;
 public class WebSocketController {
 
     private static UserService userService;
+    private static FriendRelationshipService friendRelationshipService;
+    private static MessageService messageService;
     private static ObjectMapper objectMapper;
     private static Map<Long, Session> sessionMap = Collections.synchronizedMap(new HashMap<>());
 
-    public static void setUserService(UserService userService, ObjectMapper objectMapper) {
+    public static void setUserService(UserService userService, FriendRelationshipService friendRelationshipService,
+                                      MessageService messageService, ObjectMapper objectMapper) {
         WebSocketController.userService = userService;
+        WebSocketController.friendRelationshipService = friendRelationshipService;
+        WebSocketController.messageService = messageService;
         WebSocketController.objectMapper = objectMapper;
     }
 
@@ -52,7 +59,7 @@ public class WebSocketController {
     private void initializeMessageList(long ftsId, Session session) {
         WebSocketDTO webSocketDTO = new WebSocketDTO();
         webSocketDTO.setType(WebSocketDTO.WebSocketDTOType.INITIAL_MESSAGE_LIST);
-        List<WebSocketLeftMessage> messageList = userService.queryMessageListByFtsId(ftsId);
+        List<WebSocketLeftMessage> messageList = messageService.queryMessageListByFtsId(ftsId);
         webSocketDTO.setData(messageList);
         try {
             String json = objectMapper.writeValueAsString(webSocketDTO);
@@ -115,7 +122,7 @@ public class WebSocketController {
                 long toFtsId = Long.parseLong(String.valueOf(dataMap.get("toFtsId")));
                 String messageText = String.valueOf(dataMap.get("text"));
                 String fileUrl = String.valueOf(dataMap.get("fileUrl"));
-                Response<?> sendMessageResponse = userService.sendMessage(ftsId, toFtsId, messageText, Message.MessageType.file, fileUrl);
+                Response<?> sendMessageResponse = messageService.sendMessage(ftsId, toFtsId, messageText, Message.MessageType.file, fileUrl);
                 responseDTO.setSuccess(sendMessageResponse.isSuccess());
                 if(!sendMessageResponse.isSuccess()) {
                     responseDTO.setMessage(sendMessageResponse.getMessage());
@@ -161,7 +168,7 @@ public class WebSocketController {
                 Map<String,Object> dataMap = (Map<String,Object>) data;
                 long toFtsId = Long.parseLong(String.valueOf(dataMap.get("toFtsId")));
                 String messageText = String.valueOf(dataMap.get("text"));
-                Response<?> sendMessageResponse = userService.sendMessage(ftsId, toFtsId, messageText, Message.MessageType.text, null);
+                Response<?> sendMessageResponse = messageService.sendMessage(ftsId, toFtsId, messageText, Message.MessageType.text, null);
                 responseDTO.setSuccess(sendMessageResponse.isSuccess());
                 if(!sendMessageResponse.isSuccess()) {
                     responseDTO.setMessage(sendMessageResponse.getMessage());
@@ -204,7 +211,7 @@ public class WebSocketController {
         } else {
             try {
                 long activeUserFtsId = Long.parseLong(data.toString());
-                List<WebSocketMainMessage> mainMessageList = userService.queryMessageListByTwoFtsIds(ftsId, activeUserFtsId);
+                List<WebSocketMainMessage> mainMessageList = messageService.queryMessageListByTwoFtsIds(ftsId, activeUserFtsId);
                 responseDTO.setSuccess(true);
                 responseDTO.setData(mainMessageList);
             } catch (NumberFormatException e) {
@@ -224,7 +231,7 @@ public class WebSocketController {
         } else {
             try {
                 anotherFtsId = Long.parseLong(data.toString());
-                Response<?> addFriendResponse = userService.addFriend(ftsId, anotherFtsId);
+                Response<?> addFriendResponse = friendRelationshipService.addFriend(ftsId, anotherFtsId);
                 responseDTO.setSuccess(addFriendResponse.isSuccess());
                 if(!addFriendResponse.isSuccess()) {
                     responseDTO.setMessage(addFriendResponse.getMessage());

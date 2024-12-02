@@ -155,126 +155,16 @@ public class UserService {
         log.info("[Scheduled]UserService automaticCleanExpiredUserTokenMapItems ends");
     }
 
-    /**
-     * 为了后续查询的方便，双向添加好友关系
-     * @param ftsId
-     * @param anotherFtsId
-     * @return
-     */
-    @Transactional
-    public Response<?> addFriend(Long ftsId, Long anotherFtsId) {
-        Assert.notNull(ftsId, "addFriend ftsId null");
-        Assert.notNull(anotherFtsId, "addFriend anotherFtsId null");
-        if(ftsId.equals(anotherFtsId)) {
-            return Response.fail(WebSocketConstant.ADD_FRIEND_WITH_SELF);
-        }
+    public boolean userExists(long ftsId) {
         int count = userMapper.queryUserCountByFtsId(ftsId);
-        if(count == 0) {
-            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
-        }
-        count = userMapper.queryUserCountByFtsId(anotherFtsId);
-        if(count == 0) {
-            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
-        }
-        count = friendRelationshipMapper.queryFriendRelationshipCount(ftsId, anotherFtsId, FriendRelationship.FriendRelationshipAddType.web);
-        if(count > 0) {
-            return Response.fail(WebSocketConstant.ADD_FRIEND_ALREADY_ADDED);
-        }
-        FriendRelationship friendRelationship = new FriendRelationship();
-        friendRelationship.setUserFtsId(ftsId);
-        friendRelationship.setAnotherUserFtsId(anotherFtsId);
-        friendRelationship.setAddType(FriendRelationship.FriendRelationshipAddType.web);
-        friendRelationshipMapper.insertFriendRelationship(friendRelationship);
-        //双向添加好友关系
-        friendRelationship.setUserFtsId(anotherFtsId);
-        friendRelationship.setAnotherUserFtsId(ftsId);
-        friendRelationshipMapper.insertFriendRelationship(friendRelationship);
-
-        //双向发送打招呼消息
-        Message helloMessage = new Message();
-        helloMessage.setFromFtsId(ftsId);
-        helloMessage.setToFtsId(anotherFtsId);
-        helloMessage.setText(WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
-        helloMessage.setMessageType(Message.MessageType.text);
-        messageMapper.insertMessage(helloMessage);
-        helloMessage.setFromFtsId(anotherFtsId);
-        helloMessage.setToFtsId(ftsId);
-        messageMapper.insertMessage(helloMessage);
-        Map<String,Object> resultMap = new HashMap<>();
-        resultMap.put("anotherNickname", userMapper.queryNicknameByFtsId(anotherFtsId));
-        resultMap.put("anotherFtsId", anotherFtsId);
-        resultMap.put("ftsId", ftsId);
-        resultMap.put("nickname", userMapper.queryNicknameByFtsId(ftsId));
-        resultMap.put("helloMessage", WebSocketConstant.ADD_FRIEND_HELLO_MESSAGE);
-        return Response.success(resultMap);
+        return count > 0;
     }
 
-    public Response<?> sendMessage(long fromFtsId, long toFtsId, String text, Message.MessageType messageType, String fileUrl) {
-        Assert.isTrue(StringUtils.isNotBlank(text), "sendMessage text blank");
-        Assert.notNull(messageType, "sendMessage messageType null");
-        if(messageType == Message.MessageType.file) {
-            Assert.notNull(fileUrl, "sendMessage fileUrl null");
-        }
-        if(fromFtsId == toFtsId) {
-            return Response.fail(WebSocketConstant.SEND_MESSAGE_WITH_SELF);
-        }
-        int count = userMapper.queryUserCountByFtsId(fromFtsId);
-        if(count == 0) {
-            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
-        }
-        count = userMapper.queryUserCountByFtsId(toFtsId);
-        if(count == 0) {
-            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
-        }
-        Message message = new Message();
-        message.setMessageType(messageType);
-        message.setFromFtsId(fromFtsId);
-        message.setToFtsId(toFtsId);
-        message.setText(text);
-        if(messageType == Message.MessageType.file) {
-            message.setFileUrl(fileUrl);
-        }
-        messageMapper.insertMessage(message);
-        String nickname = userMapper.queryNicknameByFtsId(fromFtsId);
-        return Response.success(nickname);
+    public String queryNicknameByFtsId(long ftsId) {
+        return userMapper.queryNicknameByFtsId(ftsId);
     }
 
-    /**
-     * 用两个fts号码双向查询所有消息，按消息发送时间升序排序
-     * @param ftsId
-     * @param anotherFtsId
-     * @return
-     */
-    public List<WebSocketMainMessage> queryMessageListByTwoFtsIds(long ftsId, long anotherFtsId) {
-        List<Message> messageList = messageMapper.queryMessageListByTwoFtsIds(ftsId, anotherFtsId),
-                anotherMessageList = messageMapper.queryMessageListByTwoFtsIds(anotherFtsId, ftsId);
-        if(!CollectionUtils.isEmpty(messageList)) {
-            messageList.addAll(anotherMessageList);
-        } else {
-            messageList = anotherMessageList;
-        }
-        if(CollectionUtils.isEmpty(messageList)) {
-            return new ArrayList<>();
-        }
-        Set<Long> ftsIds = new HashSet<>();
-        messageList.forEach(message -> ftsIds.add(message.getFromFtsId()));
-        Map<Long,String> nicknameMap = queryFtsIdToNicknameMap(ftsIds);
-        messageList.sort(Comparator.comparing(Message::getCreateTime));
-        List<WebSocketMainMessage> mainMessageList = messageList.stream().map(message -> {
-            WebSocketMainMessage mainMessage = new WebSocketMainMessage();
-            mainMessage.setText(message.getText());
-            mainMessage.setToFtsId(message.getToFtsId());
-            mainMessage.setType(message.getMessageType());
-            mainMessage.setFromFtsId(message.getFromFtsId());
-            mainMessage.setFileUrl(message.getFileUrl());
-            mainMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
-            mainMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));
-            return mainMessage;
-        }).collect(Collectors.toList());
-        return mainMessageList;
-    }
-
-    private Map<Long,String> queryFtsIdToNicknameMap(Set<Long> ftsIds) {
+    public Map<Long,String> queryFtsIdToNicknameMap(Set<Long> ftsIds) {
         List<Map<String,Object>> nicknameResultList = userMapper.queryNicknamesByFtsIds(ftsIds);
         Map<Long, String> nicknameMap = new HashMap<>();
         nicknameResultList.forEach(stringObjectMap -> nicknameMap.put((long)stringObjectMap.get("fts_id"),
@@ -282,62 +172,6 @@ public class UserService {
         return nicknameMap;
     }
 
-    private Map<Long,LocalDateTime> queryFriendFtsIdToCreateTimeMap(long ftsId) {
-        List<Map<String,Object>> friendFtsIdListWithCreateTime = friendRelationshipMapper.queryFriendFtsIdsWithCreateTime(ftsId, FriendRelationship.FriendRelationshipAddType.web);
-        Map<Long,LocalDateTime> friendFtsIdToCreateTimeMap = new HashMap<>();
-        friendFtsIdListWithCreateTime.forEach(stringObjectMap -> friendFtsIdToCreateTimeMap.put((long)stringObjectMap.get("user_fts_id"), (LocalDateTime) stringObjectMap.get("create_time")));
-        return friendFtsIdToCreateTimeMap;
-    }
-
-    /**
-     * 查询某fts号码收到的所有消息，<strong>每个fts号码发来的消息只保留一条最新的</strong>
-     * @param ftsId
-     * @return
-     */
-    public List<WebSocketLeftMessage> queryMessageListByFtsId(long ftsId) {
-        Map<Long,LocalDateTime> friendFtsIdToCreateTimeMap = queryFriendFtsIdToCreateTimeMap(ftsId);
-        if(CollectionUtils.isEmpty(friendFtsIdToCreateTimeMap)) {
-            return new ArrayList<>();
-        }
-        Map<Long,String> nicknameMap = queryFtsIdToNicknameMap(friendFtsIdToCreateTimeMap.keySet());
-        List<Message> messageList = new LinkedList<>();
-        for(Long friendFtsId: friendFtsIdToCreateTimeMap.keySet()) {
-            List<Message> oneMessageList = messageMapper.queryMessageListBothOneByTwoFtsIds(ftsId, friendFtsId);
-            Message message;
-            if(CollectionUtils.isEmpty(oneMessageList)) {
-                message = new Message();
-                message.setMessageType(Message.MessageType.text);
-                message.setText("");
-                message.setCreateTime(friendFtsIdToCreateTimeMap.get(friendFtsId));
-                message.setFromFtsId(friendFtsId);
-                messageList.add(message);
-            } else if(oneMessageList.size() == 1) {
-                messageList.add(oneMessageList.get(0));
-            } else {
-                Message message1 = oneMessageList.get(0), message2 = oneMessageList.get(1);
-                int compare = message1.getCreateTime().compareTo(message2.getCreateTime());
-                if(compare < 0) {
-                    messageList.add(message2);
-                } else {
-                    messageList.add(message1);
-                }
-            }
-            messageList.get(messageList.size() - 1).setFromFtsId(friendFtsId);
-            messageList.get(messageList.size() - 1).setToFtsId(0);
-        }
-        messageList.sort((o1, o2) -> -1 * o1.getCreateTime().compareTo(o2.getCreateTime()));
-        List<WebSocketLeftMessage> resultList = messageList.stream().map(message -> {
-            WebSocketLeftMessage leftMessage = new WebSocketLeftMessage();
-            leftMessage.setType(message.getMessageType());
-            leftMessage.setText(message.getText());
-            leftMessage.setFromFtsId(message.getFromFtsId());
-            leftMessage.setToFtsId(message.getToFtsId());
-            leftMessage.setFromNickname(nicknameMap.get(message.getFromFtsId()));
-            leftMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
-            return leftMessage;
-        }).collect(Collectors.toList());
-        return resultList;
-    }
 
     @Transactional
     public Response<Long> registerUser(RegisterForm registerForm) {

@@ -1,6 +1,8 @@
 package com.adam.ftsweb.config;
 
 import com.adam.ftsweb.controller.WebSocketController;
+import com.adam.ftsweb.service.FriendRelationshipService;
+import com.adam.ftsweb.service.MessageService;
 import com.adam.ftsweb.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -157,8 +159,9 @@ public class WebConfig implements WebMvcConfigurer, ApplicationListener<WebServe
     }
 
     @Autowired
-    public void setWebSocketUserService(UserService userService, ObjectMapper objectMapper) {
-        WebSocketController.setUserService(userService, objectMapper);
+    public void setWebSocketUserService(UserService userService, FriendRelationshipService friendRelationshipService,
+                                        MessageService messageService, ObjectMapper objectMapper) {
+        WebSocketController.setUserService(userService, friendRelationshipService, messageService, objectMapper);
     }
 
 }
