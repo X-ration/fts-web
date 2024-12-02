@@ -82,7 +82,7 @@ public class WebConfig implements WebMvcConfigurer, ApplicationListener<WebServe
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         //避免拦截静态资源，手动添加需要拦截的路径
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/index", "/ws", "/file/**");
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/index", "/ws", "/file/upload");
     }
 
     /**
