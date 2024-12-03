@@ -153,11 +153,11 @@ public class WebSocketController {
             if(dataMap.get("autograph") != null) {
                 registerForm.setAutograph(String.valueOf(dataMap.get("autograph")));
             }
-            Response<RegisterFormErrorMsg> errorObject = userController.checkParamsAndGenerateErrorMsg(registerForm);
-            if(!errorObject.isSuccess()) {
+            RegisterFormErrorMsg errorObject = checkParamsAndGenerateErrorMsg(ftsId, registerForm);
+            if(errorObject.hasErrors()) {
                 responseDTO.setSuccess(false);
                 responseDTO.setMessage("参数校验不通过");
-                responseDTO.setData(errorObject.getData());
+                responseDTO.setData(errorObject);
             } else {
                 Response<?> updateUserResponse = userService.updateUser(ftsId, registerForm);
                 responseDTO.setSuccess(updateUserResponse.isSuccess());
@@ -167,6 +167,15 @@ public class WebSocketController {
                 }
             }
         }
+    }
+
+    private RegisterFormErrorMsg checkParamsAndGenerateErrorMsg(long ftsId, RegisterForm registerForm) {
+        RegisterFormErrorMsg errorMsg = userController.checkParamsAndGenerateErrorMsg(registerForm, false);
+        boolean emailHasProblem = userService.checkModifyEmailHasProblem(ftsId, registerForm.getEmail());
+        if(emailHasProblem) {
+            errorMsg.setEmail(WebSocketConstant.EMAIL_ALREADY_IN_USE);
+        }
+        return errorMsg;
     }
 
     private void showProfile(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {

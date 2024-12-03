@@ -191,6 +191,19 @@ public class UserService {
         return Response.success(profileDTO);
     }
 
+    public boolean checkModifyEmailHasProblem(long ftsId, String email) {
+        Assert.isTrue(StringUtils.isNotBlank(email), "checkModifyEmailSame email blank");
+        User user1 = userMapper.queryUserByFtsId(ftsId);
+        if(user1 == null) {
+            return false;
+        }
+        if(!StringUtils.equals(user1.getEmail(), email)) {
+            int count = userMapper.queryUserCountByEmail(email);
+            return count > 0;
+        }
+        return false;
+    }
+
     @Transactional
     public Response<RegisterFormErrorMsg> updateUser(long ftsId, RegisterForm registerForm) {
         Assert.notNull(registerForm, "updateUser registerForm null");
@@ -202,13 +215,6 @@ public class UserService {
             User user1 = userMapper.queryUserByFtsId(ftsId);
             if(user1 == null) {
                 return Response.fail(WebSocketConstant.USER_NOT_ENABLED);
-            }
-            if(!StringUtils.equals(user1.getEmail(), registerForm.getEmail())) {
-                int count = userMapper.queryUserCountByEmail(registerForm.getEmail());
-                if (count > 0) {
-                    registerFormErrorMsg.setEmail(WebSocketConstant.EMAIL_ALREADY_IN_USE);
-                    return Response.fail(WebSocketConstant.EMAIL_ALREADY_IN_USE, registerFormErrorMsg);
-                }
             }
             String salt = StringUtil.generatePasswordSalt();
             String encryptedPassword = StringUtil.encryptPasswordMD5(registerForm.getPassword(), salt);
@@ -287,6 +293,11 @@ public class UserService {
             log.error("registerUser exception", e);
             return Response.fail("注册失败，请稍候再试");
         }
+    }
+
+    public boolean userExistsByEmail(String email) {
+        Assert.isTrue(StringUtils.isNotBlank(email), "userExistsByEmail email blank");
+        return userMapper.queryUserCountByEmail(email) > 0;
     }
 
 }

@@ -14,4 +14,9 @@ public class RegisterFormErrorMsg {
     private String hobby;
     private String autograph;
 
+    public boolean hasErrors() {
+        return (getNickname() != null || getEmail() != null || getPassword() != null || getVerifyPassword() != null
+                || getBirthDate() != null || getHobby() != null || getAutograph() != null) ;
+    }
+
 }

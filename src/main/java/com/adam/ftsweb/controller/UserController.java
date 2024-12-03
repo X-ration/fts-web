@@ -98,10 +98,11 @@ public class UserController {
     @PostMapping("/register")
     public String register(@ModelAttribute RegisterForm registerForm, Model model) {
         log.debug("register form={}", registerForm);
-        Response<RegisterFormErrorMsg> errorObject = checkParamsAndGenerateErrorMsg(registerForm);
-        if(!errorObject.isSuccess()) {
+        RegisterFormErrorMsg errorObject = checkParamsAndGenerateErrorMsg(registerForm, true);
+        if(errorObject.hasErrors()) {
             try {
-                String json = objectMapper.writeValueAsString(errorObject);
+                Response<RegisterFormErrorMsg> errorMsgResponse = Response.fail("参数校验不通过", errorObject);
+                String json = objectMapper.writeValueAsString(errorMsgResponse);
                 model.addAttribute("error", json);
             } catch (JsonProcessingException e) {
                 log.error("register Jackson processing exception", e);
@@ -119,7 +120,7 @@ public class UserController {
         }
     }
 
-    public Response<RegisterFormErrorMsg> checkParamsAndGenerateErrorMsg(RegisterForm registerForm) {
+    public RegisterFormErrorMsg checkParamsAndGenerateErrorMsg(RegisterForm registerForm, boolean checkEmail) {
         RegisterFormErrorMsg errorMsg = new RegisterFormErrorMsg();
         if(StringUtils.isBlank(registerForm.getNickname())) {
             errorMsg.setNickname(RegisterPageConstant.NICKNAME_INPUT_BLANK);
@@ -132,6 +133,8 @@ public class UserController {
             errorMsg.setEmail(RegisterPageConstant.EMAIL_LENGTH_EXCEEDED);
         } else if(!StringUtil.isEmail(registerForm.getEmail())) {
             errorMsg.setEmail(RegisterPageConstant.EMAIL_INVALID);
+        } else if(checkEmail && userService.userExistsByEmail(registerForm.getEmail())) {
+            errorMsg.setEmail(RegisterPageConstant.EMAIL_ALREADY_IN_USE);
         }
         if(StringUtils.isBlank(registerForm.getPassword())) {
             errorMsg.setPassword(RegisterPageConstant.PASSWORD_INPUT_BLANK);
@@ -159,13 +162,7 @@ public class UserController {
         if(registerForm.getAutograph() != null && registerForm.getAutograph().length() > 100) {
             errorMsg.setAutograph(RegisterPageConstant.AUTOGRAPH_LENGTH_EXCEEDED);
         }
-
-        if(errorMsg.getNickname() != null || errorMsg.getEmail() != null || errorMsg.getPassword() != null || errorMsg.getVerifyPassword() != null
-                || errorMsg.getBirthDate() != null || errorMsg.getHobby() != null || errorMsg.getAutograph() != null) {
-            return Response.fail("注册失败，请检查输入！", errorMsg);
-        } else {
-            return Response.success();
-        }
+        return errorMsg;
     }
 
 }
