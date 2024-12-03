@@ -5,6 +5,7 @@ import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.constant.SystemConstant;
 import com.adam.ftsweb.constant.WebSocketConstant;
+import com.adam.ftsweb.dto.ProfileDTO;
 import com.adam.ftsweb.dto.RegisterForm;
 import com.adam.ftsweb.dto.WebSocketLeftMessage;
 import com.adam.ftsweb.dto.WebSocketMainMessage;
@@ -172,6 +173,26 @@ public class UserService {
         return nicknameMap;
     }
 
+    public Response<ProfileDTO> queryProfile(long ftsId) {
+        if(!userExists(ftsId)) {
+            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
+        }
+        User user = userMapper.queryUserByFtsId(ftsId);
+        if(user == null) {
+            return Response.fail(WebSocketConstant.USER_NOT_ENABLED);
+        }
+        ProfileDTO profileDTO = new ProfileDTO();
+        profileDTO.setFtsId(user.getFtsId());
+        profileDTO.setNickname(user.getNickname());
+        profileDTO.setEmail(user.getEmail());
+        //扩展信息可能为null
+        if(user.getUserExtend().getBirthDate() != null) {
+            profileDTO.setBirthDate(user.getUserExtend().getBirthDate().format(WebConfig.DATE_FORMATTER));
+        }
+        profileDTO.setHobby(user.getUserExtend().getHobby());
+        profileDTO.setAutograph(user.getUserExtend().getAutograph());
+        return Response.success(profileDTO);
+    }
 
     @Transactional
     public Response<Long> registerUser(RegisterForm registerForm) {

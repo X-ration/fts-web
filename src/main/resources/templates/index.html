@@ -144,13 +144,54 @@ charset=UTF-8"/>
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">用户1的资料</h5>
+                        <h5 class="modal-title">查看资料</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        对方资料
+                        <h4>基础信息</h4>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="viewFtsId">Fts号码</label>
+                                <input type="text" readonly class="form-control" id="viewFtsId" value="自动生成">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="viewNickname">昵称</label>
+                                <input type="text" readonly class="form-control" id="viewNickname" placeholder="可以包含表情符号">
+                                <div class="invalid-feedback">昵称长度不能超过32个字符</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="viewEmail">电子邮件地址</label>
+                                <input type="email" readonly class="form-control" id="viewEmail" placeholder="someone@example.com">
+                                <div class="invalid-feedback">必须是合法的电子邮件地址</div>
+                            </div>
+                        </div>
+                        <br>
+                        <h4>扩展信息</h4>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="viewBirthDate">出生日期</label>
+                                <input type="text" readonly class="form-control" id="viewBirthDate" placeholder="请选择日期">
+                                <div class="invalid-feedback">请输入正确的日期</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="viewHobby">爱好</label>
+                                <textarea type="text" readonly class="form-control" id="viewHobby" placeholder="不超过100字符"></textarea>
+                                <div class="invalid-feedback">爱好不能超过100个字符</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="viewAutograph">个性签名</label>
+                                <textarea class="form-control" readonly id="viewAutograph" placeholder="不超过100字符"></textarea>
+                                <div class="invalid-feedback">个性签名不能超过100个字符</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
@@ -168,7 +209,60 @@ charset=UTF-8"/>
                         </button>
                     </div>
                     <div class="modal-body">
-                        我的资料
+                        <h4>基础信息</h4>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="modifyFtsId">Fts号码</label>
+                                <input type="text" readonly class="form-control" id="modifyFtsId" value="自动生成">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="modifyNickname">昵称</label>
+                                <input type="text" class="form-control" id="modifyNickname" placeholder="可以包含表情符号">
+                                <div class="invalid-feedback">昵称长度不能超过32个字符</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="modifyEmail">电子邮件地址</label>
+                                <input type="email" class="form-control" id="modifyEmail" placeholder="someone@example.com">
+                                <div class="invalid-feedback">必须是合法的电子邮件地址</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="modifyPassword">密码</label>
+                                <input type="password" class="form-control" id="modifyPassword" placeholder="密码长度不超过32位">
+                                <div class="invalid-feedback">密码长度不超过32位</div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="modifyVerifyPassword">确认密码</label>
+                                <input type="password" class="form-control" id="modifyVerifyPassword" placeholder="再输入一次密码">
+                                <div class="invalid-feedback">两次输入的密码不一致</div>
+                            </div>
+                        </div>
+                        <br>
+                        <h4>扩展信息</h4>
+                        <div class="form-row">
+                            <div class="col-12 col-md-6">
+                                <label for="modifyBirthDate">出生日期</label>
+                                <input type="text" readonly class="form-control" id="modifyBirthDate" placeholder="请选择日期">
+                                <div class="invalid-feedback">请输入正确的日期</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="modifyHobby">爱好</label>
+                                <textarea type="text" class="form-control" id="modifyHobby" placeholder="不超过100字符"></textarea>
+                                <div class="invalid-feedback">爱好不能超过100个字符</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <label for="modifyAutograph">个性签名</label>
+                                <textarea class="form-control" id="modifyAutograph" placeholder="不超过100字符"></textarea>
+                                <div class="invalid-feedback">个性签名不能超过100个字符</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary">保存修改</button>
@@ -202,6 +296,14 @@ charset=UTF-8"/>
 </div>
 </body>
 <script layout:fragment="script" th:inline="javascript">
+    $('#modifyBirthDate').datepicker({
+        endDate: '0d',
+        format: 'yyyy-mm-dd',
+        language: 'zh-CN',
+        autoclose: true,
+        // todayBtn: true,
+        todayHighlight: true
+    });
     var windowHeight = $(window).height();
     var rootContainerStyle = "position: relative; min-height: " + windowHeight + "px";
     $('#rootContainer').attr('style', rootContainerStyle);
@@ -259,8 +361,104 @@ charset=UTF-8"/>
                 case 'CLEAR_ALL_MESSAGES_RESULT':
                     clearAllMessagesResult(responseDTO);
                     break;
+                case 'SHOW_PROFILE_RESULT':
+                    showProfileResult(responseDTO);
+                    break;
             }
         };/*]]>*/
+        function showProfileResult(responseDTO) {
+            if(!responseDTO.success) {
+                alert("获取用户资料失败:" + responseDTO.message);
+                return;
+            }
+
+            var activeUserFtsIdStr = $('#activeUserFtsId').html();
+            var activeUserFtsId = parseInt(activeUserFtsIdStr);
+            var myUserFtsIdStr = $('#myUserFtsId').html();
+            var myUserFtsId = parseInt(myUserFtsIdStr);
+            var profile = responseDTO.data;
+            var profileFtsId = profile.ftsId;
+            if(!isNaN(activeUserFtsId) && !isNaN(myUserFtsId) && activeUserFtsId === myUserFtsId && activeUserFtsId === profileFtsId) {
+                viewProfileModal(profile);
+                modifyProfileModal(profile);
+            } else if(!isNaN(activeUserFtsId) && activeUserFtsId === profileFtsId) {
+                viewProfileModal(profile);
+            } else if(!isNaN(myUserFtsId) && myUserFtsId === profileFtsId) {
+                modifyProfileModal(profile);
+            } else {
+                console.log("放弃处理资料对象，可能由于页面错误或网络缓慢" + profile);
+            }
+        }
+        function viewProfileModal(profile) {
+            $('#viewFtsId').val(profile.ftsId);
+            $('#viewNickname').val(profile.nickname);
+            $('#viewEmail').val(profile.email);
+            $('#viewBirthDate').val(profile.birthDate);
+            $('#viewHobby').val(profile.hobby);
+            $('#viewAutograph').val(profile.autograph);
+        }
+        function modifyProfileModal(profile) {
+            $('#modifyFtsId').val(profile.ftsId);
+            $('#modifyNickname').val(profile.nickname);
+            $('#modifyEmail').val(profile.email);
+            $('#modifyBirthDate').val(profile.birthDate);
+            $('#modifyHobby').val(profile.hobby);
+            $('#modifyAutograph').val(profile.autograph);
+        }
+        $('#showProfileModal').on('show.bs.modal', function (e) {
+            var activeUserFtsIdStr = $('#activeUserFtsId').html();
+            var activeUserFtsId = parseInt(activeUserFtsIdStr);
+            if(isNaN(activeUserFtsId)) {
+                alert("请选择用户");
+                return;
+            }
+
+            var requestDTO = {
+                'type': 'SHOW_PROFILE', 'data': activeUserFtsId
+            };
+            webSocket.send(JSON.stringify(requestDTO));
+        });
+        $('#showProfileModal').on('hidden.bs.modal', function (e) {
+            $('#viewFtsId').val('');
+            $('#viewNickname').val('');
+            $('#viewEmail').val('');
+            $('#viewBirthDate').val('');
+            $('#viewHobby').val('');
+            $('#viewAutograph').val('');
+            $('#modifyFtsId').val('');
+            $('#modifyNickname').val('');
+            $('#modifyEmail').val('');
+            $('#modifyBirthDate').val('');
+            $('#modifyHobby').val('');
+            $('#modifyAutograph').val('');
+        });
+        $('#modifyProfileModal').on('show.bs.modal', function (e) {
+            var myUserFtsIdStr = $('#myUserFtsId').html();
+            var myUserFtsId = parseInt(myUserFtsIdStr);
+            if(isNaN(myUserFtsId)) {
+                alert("页面错误，请刷新页面");
+                return;
+            }
+
+            var requestDTO = {
+                'type': 'SHOW_PROFILE', 'data': myUserFtsId
+            };
+            webSocket.send(JSON.stringify(requestDTO));
+        });
+        $('#modifyProfileModal').on('hidden.bs.modal', function (e) {
+            $('#viewFtsId').val('');
+            $('#viewNickname').val('');
+            $('#viewEmail').val('');
+            $('#viewBirthDate').val('');
+            $('#viewHobby').val('');
+            $('#viewAutograph').val('');
+            $('#modifyFtsId').val('');
+            $('#modifyNickname').val('');
+            $('#modifyEmail').val('');
+            $('#modifyBirthDate').val('');
+            $('#modifyHobby').val('');
+            $('#modifyAutograph').val('');
+        });
         function sendMessageFileResult(responseDTO) {
             if(!responseDTO.success) {
                 alert("发送消息失败,请刷新重试:" + responseDTO.message);

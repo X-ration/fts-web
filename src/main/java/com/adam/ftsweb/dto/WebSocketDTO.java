@@ -62,6 +62,14 @@ public class WebSocketDTO {
          * 清理所有信息的返回数据
          */
         CLEAR_ALL_MESSAGES_RESULT,
+        /**
+         * 查询资料
+         */
+        SHOW_PROFILE,
+        /**
+         * 查询资料的返回数据
+         */
+        SHOW_PROFILE_RESULT,
         ;
     }
 

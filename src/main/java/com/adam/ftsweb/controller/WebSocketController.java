@@ -2,10 +2,7 @@ package com.adam.ftsweb.controller;
 
 import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.WebSocketConstant;
-import com.adam.ftsweb.dto.WebSocketDTO;
-import com.adam.ftsweb.dto.WebSocketLeftMessage;
-import com.adam.ftsweb.dto.WebSocketMainMessage;
-import com.adam.ftsweb.dto.WebSocketResponseDTO;
+import com.adam.ftsweb.dto.*;
 import com.adam.ftsweb.po.Message;
 import com.adam.ftsweb.service.FriendRelationshipService;
 import com.adam.ftsweb.service.MessageService;
@@ -107,6 +104,9 @@ public class WebSocketController {
             case CLEAR_ALL_MESSAGES:
                 clearAllMessages(requestDTO, responseDTO, ftsId);
                 break;
+            case SHOW_PROFILE:
+                showProfile(requestDTO, responseDTO, ftsId);
+                break;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
         }
@@ -115,6 +115,29 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(responseJson);
         } catch (JsonProcessingException e) {
             log.error("ObjectMapper write responseJson error,dto={}", responseDTO, e);
+        }
+    }
+
+    private void showProfile(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.SHOW_PROFILE_RESULT);
+        Object data = requestDTO.getData();
+        if(data == null) {
+            responseDTO.setSuccess(false);
+            responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
+        } else {
+            try {
+                long requestFtsId = Long.parseLong(String.valueOf(data));
+                Response<ProfileDTO> queryProfileResponse = userService.queryProfile(requestFtsId);
+                responseDTO.setSuccess(queryProfileResponse.isSuccess());
+                if(queryProfileResponse.isSuccess()) {
+                    responseDTO.setData(queryProfileResponse.getData());
+                } else {
+                    responseDTO.setMessage(queryProfileResponse.getMessage());
+                }
+            } catch (NumberFormatException e) {
+                responseDTO.setSuccess(false);
+                responseDTO.setMessage(WebSocketConstant.DATA_STRUCTURE_INVALID);
+            }
         }
     }
 

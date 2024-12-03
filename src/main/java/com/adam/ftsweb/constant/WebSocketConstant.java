@@ -11,5 +11,6 @@ public class WebSocketConstant {
     public static final String ADD_FRIEND_HELLO_MESSAGE = "我们已经是好友了！";
     public static final String DATA_STRUCTURE_INVALID = "非法的数据包格式";
     public static final String SEND_MESSAGE_WITH_SELF = "不能给自己发信息";
+    public static final String USER_NOT_ENABLED = "账户未启用";
 
 }
