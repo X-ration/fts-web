@@ -52,4 +52,12 @@ public interface MessageMapper {
     })
     List<Message> queryMessageListByTwoFtsIds(@Param("ftsId")long ftsId, @Param("anotherFtsId")long anotherFtsId);
 
+    @Update({
+            "UPDATE message SET is_show=false",
+            "WHERE ((from_fts_id=#{ftsId} AND to_fts_id=#{anotherFtsId})",
+            "OR (from_fts_id=#{anotherFtsId} AND to_fts_id=#{ftsId}))",
+            "AND is_show=true"
+    })
+    int updateIsShowToFalseByTwoFtsIds(@Param("ftsId")long ftsId, @Param("anotherFtsId")long anotherFtsId);
+
 }

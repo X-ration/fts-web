@@ -62,7 +62,7 @@ charset=UTF-8"/>
                     </div>
                 </div>
                 <hr>
-                <button type="button" class="btn btn-outline-primary btn-block" id="clearAllMessages">清理信息</button>
+                <button type="button" class="btn btn-outline-primary btn-block" onclick="clearAllMessages()" id="clearAllMessages">清理信息</button>
                 <div id="messageList">
                     <div id="leftMessageTemplate" class="ml-1 d-none row justify-content-start">
                         <div class="card rounded border border-primary" style="width: 18rem;">
@@ -252,19 +252,81 @@ charset=UTF-8"/>
                     break;
                 case 'SEND_MESSAGE_TEXT_RESULT':
                     sendMessageTextResult(responseDTO);
+                    break;
                 case 'SEND_MESSAGE_FILE_RESULT':
                     sendMessageFileResult(responseDTO);
+                    break;
+                case 'CLEAR_ALL_MESSAGES_RESULT':
+                    clearAllMessagesResult(responseDTO);
                     break;
             }
         };/*]]>*/
         function sendMessageFileResult(responseDTO) {
             if(!responseDTO.success) {
-                alert("发送消息失败,请刷新重试");
+                alert("发送消息失败,请刷新重试:" + responseDTO.message);
             }
         }
         function sendMessageTextResult(responseDTO) {
             if(!responseDTO.success) {
-                alert("发送消息失败,请刷新重试");
+                alert("发送消息失败,请刷新重试:" + responseDTO.message);
+            }
+        }
+        function clearAllMessagesResult(responseDTO) {
+            if(responseDTO.success) {
+                clearActiveMessageList();
+                var activeUserFtsIdStr = $('#activeUserFtsId').html();
+                var activeUserFtsId = parseInt(activeUserFtsIdStr);
+                var friendListContainer = $('#friendListContainer');
+                var friendList = friendListContainer.children();
+                if(!isNaN(activeUserFtsId)) {
+                    for (var i = 0; i < friendList.length; i++) {
+                        var friendDiv = $(friendList[i]);
+                        var friendFtsIdStr = friendDiv.children("span:first").html();
+                        if (parseInt(friendFtsIdStr) === activeUserFtsId) {
+                            friendDiv.children("p:first").html('');
+                            break;
+                        }
+                    }
+                }
+                var count = parseInt(responseDTO.data.toString());
+                if(!isNaN(count) && count > 0) {
+                    alert("成功清理了" + count + "条消息");
+                } else {
+                    alert("没有需要清理的消息");
+                }
+            } else {
+                alert("清理失败:" + responseDTO.message);
+            }
+        }
+
+        /**
+         * 清理所有消息点击事件-前端+后端
+         */
+        function clearAllMessages() {
+            var container = $('#messageList');
+            var children = container.children();
+            var hasMessage = false;
+            for(var i=0;i<children.length;i++) {
+                var childDiv = $(children[i]);
+                if(!childDiv.hasClass('d-none')) {
+                    hasMessage = true;
+                    break;
+                }
+            }
+            if(!hasMessage) {
+                alert("没有需要清理的消息");
+                return;
+            }
+
+            var activeUserFtsIdStr = $('#activeUserFtsId').html();
+            var activeUserFtsId = parseInt(activeUserFtsIdStr);
+            if(!isNaN(activeUserFtsId)) {
+                var requestDTO = {
+                    'type': 'CLEAR_ALL_MESSAGES', 'data': activeUserFtsId
+                };
+                webSocket.send(JSON.stringify(requestDTO));
+            } else {
+                alert("请选择用户");
             }
         }
         function clearActiveMessageList() {

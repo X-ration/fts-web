@@ -28,6 +28,20 @@ public class MessageService {
     private FriendRelationshipService friendRelationshipService;
 
     /**
+     * 将两个用户之间的所有消息is_show字段标记为false
+     * @param ftsId
+     * @param anotherFtsId
+     * @return
+     */
+    public Response<Integer> clearAllMessages(long ftsId, long anotherFtsId) {
+        if(!userService.userExists(ftsId) || !userService.userExists(anotherFtsId)) {
+            return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
+        }
+        int count = messageMapper.updateIsShowToFalseByTwoFtsIds(ftsId, anotherFtsId);
+        return Response.success(count);
+    }
+
+    /**
      * 查询某fts号码收到的所有消息，<strong>每个fts号码发来的消息只保留一条最新的</strong>
      * @param ftsId
      * @return

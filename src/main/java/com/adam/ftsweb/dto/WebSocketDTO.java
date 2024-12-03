@@ -54,6 +54,14 @@ public class WebSocketDTO {
          * 发送文件的返回数据
          */
         SEND_MESSAGE_FILE_RESULT,
+        /**
+         * 清理所有信息
+         */
+        CLEAR_ALL_MESSAGES,
+        /**
+         * 清理所有信息的返回数据
+         */
+        CLEAR_ALL_MESSAGES_RESULT,
         ;
     }
 

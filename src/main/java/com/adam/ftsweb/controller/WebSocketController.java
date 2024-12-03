@@ -104,6 +104,9 @@ public class WebSocketController {
             case SEND_MESSAGE_FILE:
                 sendMessageFile(requestDTO, responseDTO, ftsId);
                 break;
+            case CLEAR_ALL_MESSAGES:
+                clearAllMessages(requestDTO, responseDTO, ftsId);
+                break;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
         }
@@ -112,6 +115,29 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(responseJson);
         } catch (JsonProcessingException e) {
             log.error("ObjectMapper write responseJson error,dto={}", responseDTO, e);
+        }
+    }
+
+    private void clearAllMessages(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.CLEAR_ALL_MESSAGES_RESULT);
+        Object data = requestDTO.getData();
+        if(data == null) {
+            responseDTO.setSuccess(false);
+            responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
+        } else {
+            try {
+                long activeUserFtsId = Long.parseLong(String.valueOf(data));
+                Response<Integer> clearAllMessagesResponse = messageService.clearAllMessages(ftsId, activeUserFtsId);
+                responseDTO.setSuccess(clearAllMessagesResponse.isSuccess());
+                if(!clearAllMessagesResponse.isSuccess()) {
+                    responseDTO.setMessage(clearAllMessagesResponse.getMessage());
+                } else {
+                    responseDTO.setData(clearAllMessagesResponse.getData());
+                }
+            } catch (NumberFormatException e) {
+                responseDTO.setSuccess(false);
+                responseDTO.setMessage(WebSocketConstant.DATA_STRUCTURE_INVALID);
+            }
         }
     }
 
