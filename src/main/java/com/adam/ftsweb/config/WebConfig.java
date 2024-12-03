@@ -1,5 +1,6 @@
 package com.adam.ftsweb.config;
 
+import com.adam.ftsweb.controller.UserController;
 import com.adam.ftsweb.controller.WebSocketController;
 import com.adam.ftsweb.service.FriendRelationshipService;
 import com.adam.ftsweb.service.MessageService;
@@ -160,8 +161,8 @@ public class WebConfig implements WebMvcConfigurer, ApplicationListener<WebServe
 
     @Autowired
     public void setWebSocketUserService(UserService userService, FriendRelationshipService friendRelationshipService,
-                                        MessageService messageService, ObjectMapper objectMapper) {
-        WebSocketController.setUserService(userService, friendRelationshipService, messageService, objectMapper);
+                                        MessageService messageService, UserController userController, ObjectMapper objectMapper) {
+        WebSocketController.setUserService(userService, friendRelationshipService, messageService, userController, objectMapper);
     }
 
 }

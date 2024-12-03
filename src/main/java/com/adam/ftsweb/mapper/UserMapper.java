@@ -25,11 +25,30 @@ public interface UserMapper {
     @Options(useGeneratedKeys=true, keyProperty="id")
     int insertUser(User user);
 
+    @Update({
+            "UPDATE user SET email=#{email},nickname=#{nickname},password=#{password},salt=#{salt}",
+            "WHERE fts_id=#{ftsId} AND is_enabled=true"
+    })
+    int updateUserByFtsId(User user);
+
     @Insert({"INSERT INTO user_extend (user_id,birth_date,hobby,autograph)",
             "VALUES (#{userId},#{birthDate},#{hobby},#{autograph})"
     })
     @Options(useGeneratedKeys=true, keyProperty="id")
     int insertUserExtend(UserExtend userExtend);
+
+    @Update({
+            "<script>",
+            "UPDATE user_extend",
+            "<set>",
+            "<if test=\"birthDate != null\">birth_date=#{birthDate}</if>",
+            "<if test=\"hobby != null\">hobby=#{hobby}</if>",
+            "<if test=\"autograph != null\">autograph=#{autograph}</if>",
+            "</set>",
+            "WHERE user_id=#{userId}",
+            "</script>"
+    })
+    int updateUserExtendByUserId(UserExtend userExtend);
 
     @Select("SELECT COUNT(*) FROM user WHERE fts_id=#{ftsId} AND is_enabled=true")
     int queryUserCountByFtsId(long ftsId);

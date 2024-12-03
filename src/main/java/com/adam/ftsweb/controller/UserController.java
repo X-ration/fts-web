@@ -119,7 +119,7 @@ public class UserController {
         }
     }
 
-    private Response<RegisterFormErrorMsg> checkParamsAndGenerateErrorMsg(RegisterForm registerForm) {
+    public Response<RegisterFormErrorMsg> checkParamsAndGenerateErrorMsg(RegisterForm registerForm) {
         RegisterFormErrorMsg errorMsg = new RegisterFormErrorMsg();
         if(StringUtils.isBlank(registerForm.getNickname())) {
             errorMsg.setNickname(RegisterPageConstant.NICKNAME_INPUT_BLANK);
@@ -153,10 +153,10 @@ public class UserController {
                 errorMsg.setBirthDate(RegisterPageConstant.BIRTHDATE_INVALID);
             }
         }
-        if(registerForm.getHobby().length() > 100) {
+        if(registerForm.getHobby() != null && registerForm.getHobby().length() > 100) {
             errorMsg.setHobby(RegisterPageConstant.HOBBY_LENGTH_EXCEEDED);
         }
-        if(registerForm.getAutograph().length() > 100) {
+        if(registerForm.getAutograph() != null && registerForm.getAutograph().length() > 100) {
             errorMsg.setAutograph(RegisterPageConstant.AUTOGRAPH_LENGTH_EXCEEDED);
         }
 

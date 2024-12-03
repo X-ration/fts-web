@@ -32,14 +32,16 @@ public class WebSocketController {
     private static UserService userService;
     private static FriendRelationshipService friendRelationshipService;
     private static MessageService messageService;
+    private static UserController userController;
     private static ObjectMapper objectMapper;
     private static Map<Long, List<Session>> sessionMap = Collections.synchronizedMap(new HashMap<>());
 
     public static void setUserService(UserService userService, FriendRelationshipService friendRelationshipService,
-                                      MessageService messageService, ObjectMapper objectMapper) {
+                                      MessageService messageService, UserController userController, ObjectMapper objectMapper) {
         WebSocketController.userService = userService;
         WebSocketController.friendRelationshipService = friendRelationshipService;
         WebSocketController.messageService = messageService;
+        WebSocketController.userController = userController;
         WebSocketController.objectMapper = objectMapper;
     }
 
@@ -107,6 +109,9 @@ public class WebSocketController {
             case SHOW_PROFILE:
                 showProfile(requestDTO, responseDTO, ftsId);
                 break;
+            case MODIFY_PROFILE:
+                modifyProfile(requestDTO, responseDTO, ftsId);
+                break;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
         }
@@ -115,6 +120,52 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(responseJson);
         } catch (JsonProcessingException e) {
             log.error("ObjectMapper write responseJson error,dto={}", responseDTO, e);
+        }
+    }
+
+    private void modifyProfile(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.MODIFY_PROFILE_RESULT);
+        Object data = requestDTO.getData();
+        if(data == null) {
+            responseDTO.setSuccess(false);
+            responseDTO.setMessage(WebSocketConstant.INVALID_PARAM);
+        } else {
+            Map<String, Object> dataMap = (Map<String, Object>) data;
+            RegisterForm registerForm = new RegisterForm();
+            if(dataMap.get("nickname") != null) {
+                registerForm.setNickname(String.valueOf(dataMap.get("nickname")));
+            }
+            if(dataMap.get("email") != null) {
+                registerForm.setEmail(String.valueOf(dataMap.get("email")));
+            }
+            if(dataMap.get("password") != null) {
+                registerForm.setPassword(String.valueOf(dataMap.get("password")));
+            }
+            if(dataMap.get("verifyPassword") != null) {
+                registerForm.setVerifyPassword(String.valueOf(dataMap.get("verifyPassword")));
+            }
+            if(dataMap.get("birthDate") != null) {
+                registerForm.setBirthDate(String.valueOf(dataMap.get("birthDate")));
+            }
+            if(dataMap.get("hobby") != null) {
+                registerForm.setHobby(String.valueOf(dataMap.get("hobby")));
+            }
+            if(dataMap.get("autograph") != null) {
+                registerForm.setAutograph(String.valueOf(dataMap.get("autograph")));
+            }
+            Response<RegisterFormErrorMsg> errorObject = userController.checkParamsAndGenerateErrorMsg(registerForm);
+            if(!errorObject.isSuccess()) {
+                responseDTO.setSuccess(false);
+                responseDTO.setMessage("参数校验不通过");
+                responseDTO.setData(errorObject.getData());
+            } else {
+                Response<?> updateUserResponse = userService.updateUser(ftsId, registerForm);
+                responseDTO.setSuccess(updateUserResponse.isSuccess());
+                if(!updateUserResponse.isSuccess()) {
+                    responseDTO.setMessage(updateUserResponse.getMessage());
+                    responseDTO.setData(updateUserResponse.getData());
+                }
+            }
         }
     }
 

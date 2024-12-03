@@ -265,7 +265,7 @@ charset=UTF-8"/>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary">保存修改</button>
+                        <button type="button" class="btn btn-primary" onclick="modifyProfileSave()">保存修改</button>
                         <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
                     </div>
                 </div>
@@ -364,8 +364,91 @@ charset=UTF-8"/>
                 case 'SHOW_PROFILE_RESULT':
                     showProfileResult(responseDTO);
                     break;
+                case 'MODIFY_PROFILE_RESULT':
+                    modifyProfileResult(responseDTO);
+                    break;
             }
         };/*]]>*/
+        function modifyProfileResult(responseDTO) {
+            var nickname = $('#modifyNickname'), email = $('#modifyEmail'), password = $('#modifyPassword'),
+                verifyPassword = $('#modifyVerifyPassword'), birthDate = $('#modifyBirthDate'),
+                hobby = $('#modifyHobby'), autograph = $('#modifyAutograph');
+            restoreErrorClass(nickname);
+            restoreErrorClass(email);
+            restoreErrorClass(password);
+            restoreErrorClass(verifyPassword);
+            restoreErrorClass(birthDate);
+            restoreErrorClass(hobby);
+            restoreErrorClass(autograph);
+            if(!responseDTO.success) {
+                if(responseDTO.data !== null) {
+                    var errorMsgDataObject = responseDTO.data;
+                    processErrorMsgItem(errorMsgDataObject.nickname, nickname);
+                    processErrorMsgItem(errorMsgDataObject.email, email);
+                    processErrorMsgItem(errorMsgDataObject.password, password);
+                    processErrorMsgItem(errorMsgDataObject.verifyPassword, verifyPassword);
+                    processErrorMsgItemOptional(errorMsgDataObject.birthDate, birthDate);
+                    processErrorMsgItemOptional(errorMsgDataObject.hobby, hobby);
+                    processErrorMsgItemOptional(errorMsgDataObject.autograph, autograph);
+                }
+                alert("修改资料失败:" + responseDTO.message);
+            } else {
+                alert("修改资料成功");
+                $('#modifyProfileModal').modal('hide');
+            }
+        }
+        function restoreErrorClass(selector) {
+            selector.removeClass('is-valid');
+            selector.removeClass('is-invalid');
+        }
+        function processErrorMsgItem(errorMsgItem, selector) {
+            if(errorMsgItem != null) {
+                selector.addClass('is-invalid');
+                selector.next().text(errorMsgItem);
+            } else {
+                selector.addClass('is-valid');
+            }
+        }
+        function processErrorMsgItemOptional(errorMsgItem, selector) {
+            if(selector.val() !== null && selector.val() !== '') {
+                processErrorMsgItem(errorMsgItem, selector);
+            }
+        }
+        function modifyProfileSave() {
+            var nickname = $('#modifyNickname').val();
+            var email = $('#modifyEmail').val();
+            var password = $('#modifyPassword').val();
+            var verifyPassword = $('#modifyVerifyPassword').val();
+            var birthDate = $('#modifyBirthDate').val();
+            var hobby = $('#modifyHobby').val();
+            var autograph = $('#modifyAutograph').val();
+            var requestData = {};
+            if(nickname !== null && nickname !== '') {
+                requestData.nickname = nickname;
+            }
+            if(email !== null && email !== '') {
+                requestData.email = email;
+            }
+            if(password !== null && password !== '') {
+                requestData.password = password;
+            }
+            if(verifyPassword !== null && verifyPassword !== '') {
+                requestData.verifyPassword = verifyPassword;
+            }
+            if(birthDate !== null && birthDate !== '') {
+                requestData.birthDate = birthDate;
+            }
+            if(hobby !== null && hobby !== '') {
+                requestData.hobby = hobby;
+            }
+            if(autograph !== null && autograph !== '') {
+                requestData.autograph = autograph;
+            }
+            var requestDTO = {
+                'type': 'MODIFY_PROFILE', 'data': requestData
+            };
+            webSocket.send(JSON.stringify(requestDTO));
+        }
         function showProfileResult(responseDTO) {
             if(!responseDTO.success) {
                 alert("获取用户资料失败:" + responseDTO.message);

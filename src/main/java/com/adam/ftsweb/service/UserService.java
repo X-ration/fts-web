@@ -5,10 +5,7 @@ import com.adam.ftsweb.config.WebConfig;
 import com.adam.ftsweb.constant.LoginPageConstant;
 import com.adam.ftsweb.constant.SystemConstant;
 import com.adam.ftsweb.constant.WebSocketConstant;
-import com.adam.ftsweb.dto.ProfileDTO;
-import com.adam.ftsweb.dto.RegisterForm;
-import com.adam.ftsweb.dto.WebSocketLeftMessage;
-import com.adam.ftsweb.dto.WebSocketMainMessage;
+import com.adam.ftsweb.dto.*;
 import com.adam.ftsweb.mapper.FriendRelationshipMapper;
 import com.adam.ftsweb.mapper.MessageMapper;
 import com.adam.ftsweb.mapper.UserMapper;
@@ -192,6 +189,57 @@ public class UserService {
         profileDTO.setHobby(user.getUserExtend().getHobby());
         profileDTO.setAutograph(user.getUserExtend().getAutograph());
         return Response.success(profileDTO);
+    }
+
+    @Transactional
+    public Response<RegisterFormErrorMsg> updateUser(long ftsId, RegisterForm registerForm) {
+        Assert.notNull(registerForm, "updateUser registerForm null");
+        try {
+            RegisterFormErrorMsg registerFormErrorMsg = new RegisterFormErrorMsg();
+            if (!userExists(ftsId)) {
+                return Response.fail(WebSocketConstant.USER_NOT_EXISTS);
+            }
+            User user1 = userMapper.queryUserByFtsId(ftsId);
+            if(user1 == null) {
+                return Response.fail(WebSocketConstant.USER_NOT_ENABLED);
+            }
+            if(!StringUtils.equals(user1.getEmail(), registerForm.getEmail())) {
+                int count = userMapper.queryUserCountByEmail(registerForm.getEmail());
+                if (count > 0) {
+                    registerFormErrorMsg.setEmail(WebSocketConstant.EMAIL_ALREADY_IN_USE);
+                    return Response.fail(WebSocketConstant.EMAIL_ALREADY_IN_USE, registerFormErrorMsg);
+                }
+            }
+            String salt = StringUtil.generatePasswordSalt();
+            String encryptedPassword = StringUtil.encryptPasswordMD5(registerForm.getPassword(), salt);
+            User user = new User();
+            user.setFtsId(ftsId);
+            user.setNickname(registerForm.getNickname());
+            user.setEmail(registerForm.getEmail());
+            user.setPassword(encryptedPassword);
+            user.setSalt(salt);
+            userMapper.updateUserByFtsId(user);
+
+            UserExtend userExtend = new UserExtend();
+            userExtend.setUserId(user.getId());
+            if(StringUtils.isNotBlank(registerForm.getBirthDate())) {
+                LocalDate birthDate = LocalDate.parse(registerForm.getBirthDate(), WebConfig.DATE_FORMATTER);
+                userExtend.setBirthDate(birthDate);
+            }
+            if(StringUtils.isNotBlank(registerForm.getHobby())) {
+                userExtend.setHobby(registerForm.getHobby());
+            }
+            if(StringUtils.isNotBlank(registerForm.getAutograph())) {
+                userExtend.setAutograph(registerForm.getAutograph());
+            }
+            if(userExtend.getBirthDate() != null || userExtend.getHobby() != null || userExtend.getAutograph() != null) {
+                userMapper.updateUserExtendByUserId(userExtend);
+            }
+            return Response.success();
+        } catch (Exception e) {
+            log.error("updateUser exception", e);
+            return Response.fail("修改失败，请稍候再试");
+        }
     }
 
     @Transactional

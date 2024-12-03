@@ -13,4 +13,6 @@ public class WebSocketConstant {
     public static final String SEND_MESSAGE_WITH_SELF = "不能给自己发信息";
     public static final String USER_NOT_ENABLED = "账户未启用";
 
+    public static final String EMAIL_ALREADY_IN_USE = "电子邮件地址已被使用";
+
 }

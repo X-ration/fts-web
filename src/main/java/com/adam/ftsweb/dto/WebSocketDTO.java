@@ -70,6 +70,14 @@ public class WebSocketDTO {
          * 查询资料的返回数据
          */
         SHOW_PROFILE_RESULT,
+        /**
+         * 修改资料
+         */
+        MODIFY_PROFILE,
+        /**
+         * 修改资料的返回数据
+         */
+        MODIFY_PROFILE_RESULT,
         ;
     }
 
