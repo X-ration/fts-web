@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/index")
+@RequestMapping("")
 @Slf4j
 public class IndexController {
 
@@ -25,6 +25,11 @@ public class IndexController {
     private UserService userService;
 
     @GetMapping("")
+    public String rootPath() {
+        return "redirect:/index";
+    }
+
+    @GetMapping("/index")
     public String index(Model model) {
         Object object = request.getSession().getAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY);
         if(object instanceof String) {
