@@ -21,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -75,11 +76,13 @@ public class WebSocketController {
     public void onClose(@PathParam("token")String token, Session session) {
         Assert.isTrue(StringUtils.isNotBlank(token), "ws connection token blank");
         Long ftsId = userService.getFtsIdByToken(token, false);
-        Assert.notNull(ftsId, "ws connection invalid token");
+//        Assert.notNull(ftsId, "ws connection invalid token");
         log.info("ws connection close token={} ftsId={} sessionId={}", token, ftsId, session.getId());
 //        sessionMap.remove(ftsId);
         List<Session> sessionList = sessionMap.get(ftsId);
-        sessionList.remove(session);
+        if(!CollectionUtils.isEmpty(sessionList)) {
+            sessionList.remove(session);
+        }
     }
 
     @OnMessage
@@ -112,6 +115,9 @@ public class WebSocketController {
             case MODIFY_PROFILE:
                 modifyProfile(requestDTO, responseDTO, ftsId);
                 break;
+            case LOG_OUT:
+                logout(ftsId, token);
+                return;
             default:
                 responseDTO.setType(WebSocketDTO.WebSocketDTOType.NOT_RESOLVABLE);
         }
@@ -120,6 +126,23 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(responseJson);
         } catch (JsonProcessingException e) {
             log.error("ObjectMapper write responseJson error,dto={}", responseDTO, e);
+        }
+    }
+
+    private void logout(long ftsId, String token) {
+        log.info("user logout ftsId={} token={}", ftsId, token);
+        userService.expireTokens(ftsId);
+        List<Session> sessionList = sessionMap.get(ftsId);
+        if(!CollectionUtils.isEmpty(sessionList)) {
+            log.info("user logout expiring session count {} ftsId={}", sessionList.size(), ftsId);
+            for(Session session: sessionList) {
+                try {
+                    session.close();
+                } catch (IOException e) {
+                    log.error("Expiring session error,ftsId={},sessionId={}",ftsId,session.getId(),e);
+                }
+            }
+            sessionMap.remove(ftsId);
         }
     }
 

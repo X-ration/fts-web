@@ -78,6 +78,10 @@ public class WebSocketDTO {
          * 修改资料的返回数据
          */
         MODIFY_PROFILE_RESULT,
+        /**
+         * 注销Websocket会话
+         */
+        LOG_OUT,
         ;
     }
 

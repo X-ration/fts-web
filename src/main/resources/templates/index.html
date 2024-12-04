@@ -393,8 +393,13 @@ charset=UTF-8"/>
                 }
                 alert("修改资料失败:" + responseDTO.message);
             } else {
-                alert("修改资料成功");
+                alert("修改资料成功,请重新登录");
                 $('#modifyProfileModal').modal('hide');
+                var requestDTO = {
+                    'type': 'LOG_OUT'
+                };
+                webSocket.send(JSON.stringify(requestDTO));
+                location.href = [[@{/user/login}]];
             }
         }
         function restoreErrorClass(selector) {

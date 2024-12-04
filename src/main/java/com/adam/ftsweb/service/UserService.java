@@ -47,6 +47,7 @@ public class UserService {
     @Autowired
     private MessageMapper messageMapper;
     private final BiMap<String, UserTokenMapItem> userTokenToFtsIdMap = Maps.synchronizedBiMap(HashBiMap.create());
+    private final Map<Long, List<String>> ftsIdToTokenMap = Collections.synchronizedMap(new HashMap<>());
 
     public Response<Long> loginByFtsId(long ftsId, String password, boolean rememberMe, HttpSession session, HttpServletResponse response) {
         Assert.isTrue(StringUtils.isNotBlank(password), "loginByFtsId password blank");
@@ -82,6 +83,8 @@ public class UserService {
             userTokenMapItem.setUpdateTime(now);
             userTokenMapItem.setExpireSeconds(SystemConstant.USER_TOKEN_TO_FTS_ID_MAP_DEFAULT_EXPIRES);
             userTokenToFtsIdMap.put(token, userTokenMapItem);
+            List<String> tokenList = ftsIdToTokenMap.computeIfAbsent(user.getFtsId(), k -> new LinkedList<>());
+            tokenList.add(token);
             session.setAttribute(SystemConstant.SESSION_LOGIN_FTS_TOKEN_KEY, token);
             if(rememberMe) {
                 Cookie cookie = new Cookie(SystemConstant.COOKIE_LOGIN_FTS_TOKEN_KEY, token);
@@ -104,6 +107,22 @@ public class UserService {
         return userTokenToFtsIdMap.get(token);
     }
 
+    public void expireTokens(long ftsId) {
+        List<String> tokenList = ftsIdToTokenMap.get(ftsId);
+        if(!CollectionUtils.isEmpty(tokenList)) {
+            log.info("Expiring token ftsId={} tokenCount={}", ftsId, tokenList.size());
+            for(String token: tokenList) {
+                userTokenToFtsIdMap.remove(token);
+            }
+            ftsIdToTokenMap.remove(ftsId);
+        }
+    }
+
+    @Deprecated
+    public void expireToken(String token) {
+        userTokenToFtsIdMap.remove(token);
+    }
+
     /**
      * token换ftsId，自动清理过期项，自动延期
      * @param token
@@ -123,6 +142,10 @@ public class UserService {
             if(!expireTime.isAfter(now)) {
                 log.debug("手动清理userTokenToFtsIdMap token={}", token);
                 userTokenToFtsIdMap.remove(token);
+                List<String> tokenList = ftsIdToTokenMap.get(userTokenMapItem.getFtsId());
+                if(!CollectionUtils.isEmpty(tokenList)) {
+                    tokenList.remove(token);
+                }
                 return null;
             } else {
                 if(refresh) {
@@ -147,6 +170,10 @@ public class UserService {
                     expireTime = createTime.plusSeconds(userTokenMapItem.getExpireSeconds());
             if(!expireTime.isAfter(LocalDateTime.now())) {{
                 iterator.remove();
+                List<String> tokenList = ftsIdToTokenMap.get(userTokenMapItem.getFtsId());
+                if(!CollectionUtils.isEmpty(tokenList)) {
+                    tokenList.remove(token);
+                }
                 log.debug("自动清理userTokenToFtsIdMap token={}", token);
             }}
         }
