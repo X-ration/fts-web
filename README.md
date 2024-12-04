@@ -29,6 +29,7 @@
 - 在小屏设备上页面会自适应表单输入项的大小。
 ![small_device.png](readme/small-device.png)
 ![small_device_2.png](readme/small-device_2.png)
+- 登录可以勾选“记住我”，这样在关闭浏览器重新打开后还能以登录状态进入系统。
 
 Fts号码通过user_fts_id表自增值分配，bigint类型，从10000开始分配，使用unsigned类型支持18446744073709551616-10000个号码的使用（百亿亿级）。
 
