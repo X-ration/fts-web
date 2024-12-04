@@ -48,7 +48,30 @@ charset=UTF-8"/>
             </nav>
         </div>
         <div class="d-none d-xl-block col-xl-3 bd-toc">
-            Right Sidebar
+            <div id="rightSideBar">
+                <div id="rightSideBarActiveProfile">
+                    <h4>对方资料</h4>
+                    <ul>
+                        <li>Fts号码：<span></span></li>
+                        <li>昵称：<span></span></li>
+                        <li>电子邮件地址：<span></span></li>
+                        <li>出生日期：<span></span></li>
+                        <li>爱好：<p></p></li>
+                        <li>个性签名：<p></p></li>
+                    </ul>
+                </div>
+                <div id="rightSideBarMyProfile">
+                    <h4>我的资料</h4>
+                    <ul>
+                        <li>Fts号码：<span></span></li>
+                        <li>昵称：<span></span></li>
+                        <li>电子邮件地址：<span></span></li>
+                        <li>出生日期：<span></span></li>
+                        <li>爱好：<p></p></li>
+                        <li>个性签名：<p></p></li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <main id="mainContainer" class="col-12 col-md-9 col-xl-7 py-md-3 pl-md-5 bd-content" role="main">
             <div>
@@ -323,8 +346,12 @@ charset=UTF-8"/>
             var width = Math.floor(parentWidth * 2 / 3);
             card.setAttribute('style', 'width: ' + width + 'px;');
         }
-        var height = Math.floor(windowHeight * 1 / 2);
-        messageList.attr('style','height:'+height+'px; overflow-y:auto; overflow-x:hidden');
+        var messageListHeight = Math.floor(windowHeight * 1 / 2);
+        messageList.attr('style','height:'+messageListHeight+'px; overflow-y:auto; overflow-x:hidden');
+        var rightSideBarHeight = Math.floor(windowHeight * 5 / 6);
+        $('#rightSideBar').attr('style','height:'+rightSideBarHeight+'px; overflow-y:auto; overflow-x:hidden');
+        var rightSideBarActiveProfileHeight = Math.floor(rightSideBarHeight * 1 / 2);
+        $('#rightSideBarActiveProfile').attr('style','min-height:'+rightSideBarActiveProfileHeight+'px');
     }
     if('WebSocket' in window) {
         var webSocket = new WebSocket([[@{/ws/}]] + [[${token}]]);
@@ -472,16 +499,29 @@ charset=UTF-8"/>
             var myUserFtsId = parseInt(myUserFtsIdStr);
             var profile = responseDTO.data;
             var profileFtsId = profile.ftsId;
+            var rightSideBarActiveProfile = $('#rightSideBarActiveProfile'), rightSideBarMyProfile = $('#rightSideBarMyProfile');
             if(!isNaN(activeUserFtsId) && !isNaN(myUserFtsId) && activeUserFtsId === myUserFtsId && activeUserFtsId === profileFtsId) {
                 viewProfileModal(profile);
                 modifyProfileModal(profile);
+                rightSideBarProfile(profile, rightSideBarActiveProfile);
+                rightSideBarProfile(profile, rightSideBarMyProfile);
             } else if(!isNaN(activeUserFtsId) && activeUserFtsId === profileFtsId) {
                 viewProfileModal(profile);
+                rightSideBarProfile(profile, rightSideBarActiveProfile);
             } else if(!isNaN(myUserFtsId) && myUserFtsId === profileFtsId) {
                 modifyProfileModal(profile);
+                rightSideBarProfile(profile, rightSideBarMyProfile);
             } else {
                 console.log("放弃处理资料对象，可能由于页面错误或网络缓慢" + profile);
             }
+        }
+        function rightSideBarProfile(profile, selector) {
+            selector.find("span").eq(0).html(profile.ftsId);
+            selector.find("span").eq(1).html(profile.nickname);
+            selector.find("span").eq(2).html(profile.email);
+            selector.find("span").eq(3).html(profile.birthDate);
+            selector.find("p").eq(0).html(profile.hobby);
+            selector.find("p").eq(1).html(profile.autograph);
         }
         function viewProfileModal(profile) {
             $('#viewFtsId').val(profile.ftsId);
@@ -826,6 +866,7 @@ charset=UTF-8"/>
                                 }
                             };
                             webSocket.send(JSON.stringify(requestDTO));
+                            $('#messageFileInput').val(null);
 
                             if(activeUserFtsId !== myUserFtsId) {
                                 var messageDiv = $('#rightFileTemplate').clone();
@@ -964,10 +1005,13 @@ charset=UTF-8"/>
                 $('#activeUserFtsId').html(ftsIdStr);
                 var requestDTO = {'type': 'RETRIEVE_MESSAGE_LIST', 'data': ftsId};
                 webSocket.send(JSON.stringify(requestDTO));
+                requestDTO = {
+                    'type': 'SHOW_PROFILE', 'data': ftsId
+                };
+                webSocket.send(JSON.stringify(requestDTO));
             } else {
                 alert("错误的Fts号码");
             }
-            $('#messageTextArea').html('');
         }
     } else {
         alert('Not support websocket')

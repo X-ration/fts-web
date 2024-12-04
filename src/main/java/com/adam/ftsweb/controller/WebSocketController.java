@@ -57,6 +57,7 @@ public class WebSocketController {
         List<Session> sessionList = sessionMap.computeIfAbsent(ftsId, k -> new LinkedList<>());
         sessionList.add(session);
         initializeMessageList(ftsId, session);
+        initializeGetProfile(ftsId, session);
     }
 
     private void initializeMessageList(long ftsId, Session session) {
@@ -69,6 +70,24 @@ public class WebSocketController {
             session.getAsyncRemote().sendText(json);
         } catch (JsonProcessingException e) {
             log.error("initializeMessageList writeValueAsString error", e);
+        }
+    }
+
+    private void initializeGetProfile(long ftsId, Session session) {
+        WebSocketResponseDTO responseDTO = new WebSocketResponseDTO();
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.SHOW_PROFILE_RESULT);
+        Response<ProfileDTO> queryProfileResponse = userService.queryProfile(ftsId);
+        responseDTO.setSuccess(queryProfileResponse.isSuccess());
+        if(queryProfileResponse.isSuccess()) {
+            responseDTO.setData(queryProfileResponse.getData());
+        } else {
+            responseDTO.setMessage(queryProfileResponse.getMessage());
+        }
+        try {
+            String json = objectMapper.writeValueAsString(responseDTO);
+            session.getAsyncRemote().sendText(json);
+        } catch (JsonProcessingException e) {
+            log.error("initializeGetProfile writeValueAsString error", e);
         }
     }
 
