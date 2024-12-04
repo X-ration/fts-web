@@ -52,13 +52,16 @@ charset=UTF-8"/>
         </div>
         <main id="mainContainer" class="col-12 col-md-9 col-xl-7 py-md-3 pl-md-5 bd-content" role="main">
             <div>
-                <div class="row" style="position: relative">
+                <div class="row">
                     <h4 id="activeUserMessageTitle">请选择一个用户</h4>
                     <span class="d-none" id="activeUserFtsId">选中用户的Fts号码</span>
                     <span class="d-none" id="myUserFtsId" th:text="${ftsId}">我的Fts号码</span>
-                    <div class="d-flex justify-content-end" style="position: absolute; right: 0">
+                </div>
+                <div class="row">
+                    <div>
                         <button class="btn btn-outline-primary" type="button" id="showProfile" data-toggle="modal" data-target="#showProfileModal">查看资料</button>
                         <button class="btn btn-outline-primary" type="button" id="modifyProfile" data-toggle="modal" data-target="#modifyProfileModal">修改资料</button>
+                        <button class="btn btn-outline-warning" type="button" id="logout" onclick="logout()">退出登录</button>
                     </div>
                 </div>
                 <hr>
@@ -395,12 +398,15 @@ charset=UTF-8"/>
             } else {
                 alert("修改资料成功,请重新登录");
                 $('#modifyProfileModal').modal('hide');
-                var requestDTO = {
-                    'type': 'LOG_OUT'
-                };
-                webSocket.send(JSON.stringify(requestDTO));
-                location.href = [[@{/user/login}]];
+                logout();
             }
+        }
+        function logout() {
+            var requestDTO = {
+                'type': 'LOG_OUT'
+            };
+            webSocket.send(JSON.stringify(requestDTO));
+            location.href = [[@{/user/login}]];
         }
         function restoreErrorClass(selector) {
             selector.removeClass('is-valid');
