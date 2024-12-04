@@ -27,15 +27,15 @@ charset=UTF-8"/>
     </div>
     <div class="row flex-xl-nowrap ml-2 mr-2">
         <div class="col-12 col-md-3 col-xl-2 bd-sidebar">
-            <form class="bd-search d-flex align-items-center">
-                <input type="search" class="form-control" id="searchUser" placeholder="搜索用户" aria-label="Search for user" autocomplete="off">
+            <div class="bd-search d-flex align-items-center">
+                <input type="search" class="form-control" id="searchFriendInput" onsearch="searchFriend()" placeholder="搜索好友" autocomplete="off">
                 <button class="btn btn-link bd-search-docs-toggle d-md-none p-0 ml-3" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" role="img" focusable="false">
                         <title>Menu</title>
                         <path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path>
                     </svg>
                 </button>
-            </form>
+            </div>
             <nav class="bd-links collapse" id="sidebar">
                 <button type="button" class="btn btn-outline-primary btn-block" data-toggle="modal" data-target="#addFriendModal">添加好友</button>
                 <div class="bd-toc-item" id="friendListContainer">
@@ -397,8 +397,22 @@ charset=UTF-8"/>
                 case 'MODIFY_PROFILE_RESULT':
                     modifyProfileResult(responseDTO);
                     break;
+                case 'SEARCH_FRIEND_RESULT':
+                    searchFriendResult(responseDTO);
+                    break;
             }
         };/*]]>*/
+        function searchFriendResult(responseDTO) {
+            var friendListContainer = $('#friendListContainer');
+            var children = friendListContainer.children();
+            for(var i=0;i<children.length;i++) {
+                var child = $(children[i]);
+                if(!child.hasClass('d-none')) {
+                    child.remove();
+                }
+            }
+            initialMessageList(responseDTO);
+        }
         function modifyProfileResult(responseDTO) {
             var nickname = $('#modifyNickname'), email = $('#modifyEmail'), password = $('#modifyPassword'),
                 verifyPassword = $('#modifyVerifyPassword'), birthDate = $('#modifyBirthDate'),
@@ -821,6 +835,13 @@ charset=UTF-8"/>
             console.log("主动关闭ws连接")
             webSocket.close();
         };
+        function searchFriend() {
+            var searchStr = $('#searchFriendInput').val();
+            var requestDTO = {
+                'type': 'SEARCH_FRIEND', 'data': searchStr
+            };
+            webSocket.send(JSON.stringify(requestDTO));
+        }
         function messageBoxBindFile() {
             $('#messageTextArea').addClass("d-none");
             $('#messageFile').removeClass("d-none");

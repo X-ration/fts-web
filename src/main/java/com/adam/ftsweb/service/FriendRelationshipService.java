@@ -31,6 +31,11 @@ public class FriendRelationshipService {
         return friendFtsIdToCreateTimeMap;
     }
 
+    public boolean isFriend(long ftsId, long anotherFtsId) {
+        int count = friendRelationshipMapper.queryFriendRelationshipCount(ftsId, anotherFtsId, FriendRelationship.FriendRelationshipAddType.web);
+        return count > 0;
+    }
+
     /**
      * 为了后续查询的方便，双向添加好友关系
      * @param ftsId

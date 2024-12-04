@@ -41,6 +41,42 @@ public class MessageService {
         return Response.success(count);
     }
 
+    public List<WebSocketLeftMessage> queryMessageListByTwoFtsId(long ftsId, long friendFtsId) {
+        Map<Long, LocalDateTime> friendFtsIdToCreateTimeMap = friendRelationshipService.queryFriendFtsIdToCreateTimeMap(ftsId);
+        if(CollectionUtils.isEmpty(friendFtsIdToCreateTimeMap)) {
+            return new ArrayList<>();
+        }
+        List<Message> oneMessageList = messageMapper.queryMessageListBothOneByTwoFtsIds(ftsId, friendFtsId);
+        Message message;
+        if(CollectionUtils.isEmpty(oneMessageList)) {
+            message = new Message();
+            message.setMessageType(Message.MessageType.text);
+            message.setText("");
+            message.setCreateTime(friendFtsIdToCreateTimeMap.get(friendFtsId));
+            message.setFromFtsId(friendFtsId);
+        } else if(oneMessageList.size() == 1) {
+            message = oneMessageList.get(0);
+        } else {
+            Message message1 = oneMessageList.get(0), message2 = oneMessageList.get(1);
+            int compare = message1.getCreateTime().compareTo(message2.getCreateTime());
+            if(compare < 0) {
+                message = message2;
+            } else {
+                message = message1;
+            }
+        }
+        WebSocketLeftMessage leftMessage = new WebSocketLeftMessage();
+        leftMessage.setType(message.getMessageType());
+        leftMessage.setText(message.getText());
+        leftMessage.setFromFtsId(message.getFromFtsId());
+        leftMessage.setToFtsId(message.getToFtsId());
+        leftMessage.setFromNickname(userService.queryNicknameByFtsId(message.getFromFtsId()));
+        leftMessage.setCreateTime(message.getCreateTime().format(WebConfig.DATE_TIME_FORMATTER));
+        List<WebSocketLeftMessage> leftMessageList = new ArrayList<>(1);
+        leftMessageList.add(leftMessage);
+        return leftMessageList;
+    }
+
     /**
      * 查询某fts号码收到的所有消息，<strong>每个fts号码发来的消息只保留一条最新的</strong>
      * @param ftsId

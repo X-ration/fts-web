@@ -134,6 +134,9 @@ public class WebSocketController {
             case MODIFY_PROFILE:
                 modifyProfile(requestDTO, responseDTO, ftsId);
                 break;
+            case SEARCH_FRIEND:
+                searchFriend(requestDTO, responseDTO, ftsId);
+                break;
             case LOG_OUT:
                 logout(ftsId, token);
                 return;
@@ -162,6 +165,24 @@ public class WebSocketController {
                 }
             }
             sessionMap.remove(ftsId);
+        }
+    }
+
+    private void searchFriend(WebSocketDTO requestDTO, WebSocketResponseDTO responseDTO, long ftsId) {
+        responseDTO.setType(WebSocketDTO.WebSocketDTOType.SEARCH_FRIEND_RESULT);
+        Object data = requestDTO.getData();
+        responseDTO.setSuccess(true);
+        if(data == null || (data instanceof String && StringUtils.isBlank((String)data))) {
+            List<WebSocketLeftMessage> messageList = messageService.queryMessageListByFtsId(ftsId);
+            responseDTO.setData(messageList);
+        } else {
+            Long friendFtsId = userService.searchUser(data);
+            if(friendFtsId == null) {
+                responseDTO.setData(new ArrayList<>());
+            } else {
+                List<WebSocketLeftMessage> messageList = messageService.queryMessageListByTwoFtsId(ftsId, friendFtsId);
+                responseDTO.setData(messageList);
+            }
         }
     }
 

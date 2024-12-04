@@ -123,6 +123,22 @@ public class UserService {
         userTokenToFtsIdMap.remove(token);
     }
 
+    public Long searchUser(Object search) {
+        Assert.notNull(search, "searchUser search null");
+        String searchString = search instanceof String ? (String) search : search.toString();
+        try {
+            long ftsId = Long.parseLong(searchString);
+            int count = userMapper.queryUserCountByFtsId(ftsId);
+            if(count > 0) {
+                return ftsId;
+            } else {
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            return userMapper.queryFtsIdByEmail(searchString);
+        }
+    }
+
     /**
      * token换ftsId，自动清理过期项，自动延期
      * @param token

@@ -79,6 +79,14 @@ public class WebSocketDTO {
          */
         MODIFY_PROFILE_RESULT,
         /**
+         * 查找好友
+         */
+        SEARCH_FRIEND,
+        /**
+         * 查找好友的返回数据
+         */
+        SEARCH_FRIEND_RESULT,
+        /**
          * 注销Websocket会话
          */
         LOG_OUT,
