@@ -15,6 +15,7 @@
 ![modify_profile.png](readme/modify_profile.png)
 - 接收到文本或文件消息，会在浏览器右下角处收到toast提示。
 - 在小屏设备上页面会自适应表单输入项的大小。
+![small_device.png](readme/small-device.png)
 
 项目使用Maven构建，使用java+Spring Boot+Thymeleaf+Bootstrap+JQuery开发，使用MySQL数据库+MyBatis。支持动态数据源，见[application-dev.properties](src/main/resources/application-dev.properties)。 建表语句在[create_tables.sql](src/main/resources/create_tables.sql)。
 
