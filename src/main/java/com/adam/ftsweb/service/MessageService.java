@@ -45,6 +45,8 @@ public class MessageService {
         Map<Long, LocalDateTime> friendFtsIdToCreateTimeMap = friendRelationshipService.queryFriendFtsIdToCreateTimeMap(ftsId);
         if(CollectionUtils.isEmpty(friendFtsIdToCreateTimeMap)) {
             return new ArrayList<>();
+        } else if(!friendFtsIdToCreateTimeMap.containsKey(friendFtsId)) {
+            return new ArrayList<>();
         }
         List<Message> oneMessageList = messageMapper.queryMessageListBothOneByTwoFtsIds(ftsId, friendFtsId);
         Message message;
